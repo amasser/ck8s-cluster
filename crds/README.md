@@ -8,5 +8,6 @@
 
 * Adding CRDs or changing CRD version
     * To add a vendor CRD, modify get-vendor-crds.sh and add a line to download the CRD. Note the naming convention of vendored CRDs, no version number is to be included.
+        * Add the new CRDs in a folder that is named after the application that is using/controlling the CRDs
         * Also add the CRD to crds-sc|wc.txt as required
     * To change CRD version, modify the entry for the CRD in get-vendor-crds.sh to reflect the desired version. Note that this needs to be done manually when upgrading a chart.
