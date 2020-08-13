@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"time"
 
@@ -140,7 +141,7 @@ func (c *ClusterClient) MachineClient(m api.MachineState) *MachineClient {
 func (c *ClusterClient) Apply() error {
 	c.logger.Info("client_apply")
 
-	if err := c.terraformRemoteWorkspaceInit(); err != nil {
+	if err := c.terraformRemoteWorkspaceApply(); err != nil {
 		return err
 	}
 
@@ -253,13 +254,30 @@ func (c *ClusterClient) state() (api.ClusterState, error) {
 	return c.cluster.State(c.TerraformOutput)
 }
 
-func (c *ClusterClient) terraformRemoteWorkspaceInit() error {
-	c.logger.Debug("client_terraform_remote_workspace_init")
+func (c *ClusterClient) readTerraformBackendConfig() (api.TerraformBackendConfig, error) {
+	var backendConfig api.TerraformBackendConfig
 
-	cloudProvider, err := CloudProviderFromType(c.cluster.CloudProvider())
+	f, err := os.Open(c.configHandler.configPath[api.TFBackendConfigFile].Path)
 	if err != nil {
-		return err
+		return backendConfig, fmt.Errorf("error opening file: %w", err)
 	}
+
+	backendConfigBytes, err := ioutil.ReadAll(f)
+	if err != nil {
+		return backendConfig, fmt.Errorf("error reading file: %w", err)
+	}
+
+	if len(backendConfigBytes) > 0 {
+		if err := hclDecode(backendConfigBytes, &backendConfig); err != nil {
+			return backendConfig, fmt.Errorf("error can't decode terraform backend: %w", err)
+		}
+	}
+
+	return backendConfig, nil
+}
+
+func (c *ClusterClient) terraformRemoteWorkspaceApply() error {
+	c.logger.Debug("client_terraform_remote_workspace_apply")
 
 	dataDirPath := c.configHandler.configPath[api.TFDataDir].Path
 	if err := os.MkdirAll(dataDirPath, 0755); err != nil {
@@ -270,7 +288,10 @@ func (c *ClusterClient) terraformRemoteWorkspaceInit() error {
 		return fmt.Errorf("error initializing TFE workspace: %w", err)
 	}
 
-	backendConfig := cloudProvider.TerraformBackendConfig()
+	backendConfig, err := c.readTerraformBackendConfig()
+	if err != nil {
+		return fmt.Errorf("error reading terraform backend config: %w", err)
+	}
 	workspace := c.cluster.TerraformWorkspace()
 
 	if err := c.tfe.Apply(
@@ -287,16 +308,14 @@ func (c *ClusterClient) terraformRemoteWorkspaceInit() error {
 func (c *ClusterClient) terraformRemoteWorkspaceDestroy() error {
 	c.logger.Debug("client_terraform_remote_workspace_destroy")
 
-	cloudProvider, err := CloudProviderFromType(c.cluster.CloudProvider())
-	if err != nil {
-		return err
-	}
-
 	if err := c.tfe.Init(); err != nil {
 		return fmt.Errorf("error initializing TFE workspace: %w", err)
 	}
 
-	backendConfig := cloudProvider.TerraformBackendConfig()
+	backendConfig, err := c.readTerraformBackendConfig()
+	if err != nil {
+		return fmt.Errorf("error reading terraform backend config: %w", err)
+	}
 	workspace := c.cluster.TerraformWorkspace()
 
 	if err := c.tfe.Destroy(
