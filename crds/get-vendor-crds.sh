@@ -1,7 +1,5 @@
 ###pulls vendors crds from githup. If the chart version is changed (updated) in helmfile, the crd version needs to be changed here to reflect the change.
 echo downloading vendor crds
-echo elasticsearch
-curl 'https://raw.githubusercontent.com/elastic/cloud-on-k8s/1.0/config/crds/all-crds.yaml' -o elasticsearch-operator.yaml
 echo cert-manager
 curl 'https://raw.githubusercontent.com/jetstack/cert-manager/release-0.14/deploy/manifests/00-crds.yaml' -o cert-manager.yaml
 echo prometheus-operator
