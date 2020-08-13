@@ -34,7 +34,6 @@ module "service_cluster" {
     "notary.harbor"
   ]
 
-
   ssh_pub_key = var.ssh_pub_key_sc
 
   public_ingress_cidr_whitelist = var.public_ingress_cidr_whitelist

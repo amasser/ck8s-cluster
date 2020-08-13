@@ -38,13 +38,9 @@ variable "sub_domains_wc" {
   ]
 }
 
-variable "aws_dns_zone_id" {
-  default = "Z2STJRQSJO5PZ0" # elastisys.se
-}
+variable "aws_dns_zone_id" {}
 
-variable "role_arn" {
-  default = "arn:aws:iam::248119176842:role/a1-pipeline"
-}
+variable "role_arn" {}
 
 variable "dns_record_sc" {
   type = string

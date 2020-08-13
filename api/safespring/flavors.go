@@ -33,7 +33,17 @@ func Default(clusterType api.ClusterType, clusterName string) *Cluster {
 
 			S3RegionAddress: "s3.sto1.safedc.net",
 		},
-		secret: openstack.OpenstackSecret{},
+		secret: openstack.OpenstackSecret{
+			BaseSecret: api.BaseSecret{
+				S3AccessKey: "changeme",
+				S3SecretKey: "changeme",
+			},
+			AWSAccessKeyID:     "changeme",
+			AWSSecretAccessKey: "changeme",
+
+			Username: "changeme",
+			Password: "changeme",
+		},
 		tfvars: SafespringTFVars{
 			PublicIngressCIDRWhitelist: []string{},
 			APIServerWhitelist:         []string{},
@@ -42,9 +52,8 @@ func Default(clusterType api.ClusterType, clusterName string) *Cluster {
 			ExternalNetworkID:   "71b10496-2617-47ae-abbc-36239f0863bb",
 			ExternalNetworkName: "public-v4",
 
-			// TODO: We need to get rid of these.
-			AWSDNSZoneID:  "Z2STJRQSJO5PZ0", // elastisys.se
-			AWSDNSRoleARN: "arn:aws:iam::248119176842:role/a1-pipeline",
+			AWSDNSZoneID:  "changeme",
+			AWSDNSRoleARN: "changeme",
 		},
 	}
 }

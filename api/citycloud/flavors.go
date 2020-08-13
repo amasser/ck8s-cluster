@@ -22,6 +22,15 @@ func Default(clusterType api.ClusterType, clusterName string) *Cluster {
 				api.CityCloud,
 				clusterName,
 			),
+
+			IdentityAPIVersion: "3",
+			AuthURL:            "https://kna1.citycloud.com:5000",
+			RegionName:         "Kna1",
+
+			ProjectID:         "changeme",
+			ProjectDomainName: "changeme",
+			UserDomainName:    "changeme",
+
 			S3RegionAddress: "s3-kna1.citycloud.com:8080",
 		},
 		secret: openstack.OpenstackSecret{
@@ -29,6 +38,11 @@ func Default(clusterType api.ClusterType, clusterName string) *Cluster {
 				S3AccessKey: "changeme",
 				S3SecretKey: "changeme",
 			},
+			AWSAccessKeyID:     "changeme",
+			AWSSecretAccessKey: "changeme",
+
+			Username: "changeme",
+			Password: "changeme",
 		},
 		tfvars: openstack.OpenstackTFVars{
 			PublicIngressCIDRWhitelist: []string{},
@@ -38,9 +52,8 @@ func Default(clusterType api.ClusterType, clusterName string) *Cluster {
 			ExternalNetworkID:   "fba95253-5543-4078-b793-e2de58c31378",
 			ExternalNetworkName: "ext-net",
 
-			// TODO: We need to get rid of these.
-			AWSDNSZoneID:  "Z2STJRQSJO5PZ0", // elastisys.se
-			AWSDNSRoleARN: "arn:aws:iam::248119176842:role/a1-pipeline",
+			AWSDNSZoneID:  "changeme",
+			AWSDNSRoleARN: "changeme",
 		},
 	}
 }

@@ -166,11 +166,9 @@ variable nodeport_whitelist {
 variable external_network_id {
   description = "the id of the external network"
   type        = string
-  default     = "71b10496-2617-47ae-abbc-36239f0863bb"
 }
 
 variable external_network_name {
   description = "the name of the external network"
   type        = string
-  default     = "public-v4"
 }

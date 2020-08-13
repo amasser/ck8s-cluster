@@ -48,7 +48,7 @@ func (e *CloudProvider) Cluster(
 func (e *CloudProvider) TerraformBackendConfig() *api.TerraformBackendConfig {
 	backendConfig := &api.TerraformBackendConfig{
 		Hostname:     "app.terraform.io",
-		Organization: "elastisys",
+		Organization: "",
 	}
 	backendConfig.Workspaces.Prefix = "ck8s-aws-"
 	return backendConfig

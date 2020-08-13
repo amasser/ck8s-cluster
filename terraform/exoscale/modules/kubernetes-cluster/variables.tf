@@ -55,14 +55,6 @@ variable "dns_suffix" {}
 
 variable "dns_prefix" {}
 
-variable "aws_dns_zone_id" {
-  default = "Z2STJRQSJO5PZ0" # elastisys.com
-}
-
-variable "role_arn" {
-  default = "arn:aws:iam::248119176842:role/a1-pipeline"
-}
-
 variable es_local_storage_capacity_map {
   description = "Map of the size in GB of the Elasticsearch node local storage file system."
   type        = map
