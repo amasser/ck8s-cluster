@@ -126,17 +126,6 @@ func parseClusterFlag() (api.ClusterType, error) {
 	}
 }
 
-func parseNodeTypeFlag(nodeType string) (api.NodeType, error) {
-	switch nodeType {
-	case api.Master.String():
-		return api.Master, nil
-	case api.Worker.String():
-		return api.Worker, nil
-	default:
-		return -1, fmt.Errorf("invalid node type: %s", nodeType)
-	}
-}
-
 func setupLogger() error {
 	if logger != nil {
 		panic("logger already setup")

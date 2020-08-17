@@ -32,11 +32,13 @@ resource "openstack_compute_servergroup_v2" "master_anti_affinity" {
 module "master" {
   source = "../../../modules/openstack/vm"
 
-  prefix          = var.prefix
-  names           = var.master_names
-  name_flavor_map = var.master_name_flavor_map
-  image_id        = var.cluster_image
-  key_pair        = openstack_compute_keypair_v2.sshkey.id
+  prefix = var.prefix
+  machines = {
+    for name, machine in var.machines : name => machine
+    if machine.node_type == "master"
+  }
+  image_id = var.cluster_image
+  key_pair = openstack_compute_keypair_v2.sshkey.id
 
   external_network_name = var.external_network_name
 
@@ -62,11 +64,13 @@ resource "openstack_compute_servergroup_v2" "worker_anti_affinity" {
 module "worker" {
   source = "../../../modules/openstack/vm"
 
-  prefix          = var.prefix
-  names           = var.worker_names
-  name_flavor_map = var.worker_name_flavor_map
-  image_id        = var.cluster_image
-  key_pair        = openstack_compute_keypair_v2.sshkey.id
+  prefix = var.prefix
+  machines = {
+    for name, machine in var.machines : name => machine
+    if machine.node_type == "worker"
+  }
+  image_id = var.cluster_image
+  key_pair = openstack_compute_keypair_v2.sshkey.id
 
   external_network_name = var.external_network_name
 
@@ -84,11 +88,13 @@ module "worker" {
 module "haproxy_lb" {
   source = "../../../modules/openstack/vm"
 
-  prefix          = var.prefix
-  names           = var.loadbalancer_names
-  name_flavor_map = var.loadbalancer_name_flavor_map
-  image_id        = var.loadbalancer_image
-  key_pair        = openstack_compute_keypair_v2.sshkey.id
+  prefix = var.prefix
+  machines = {
+    for name, machine in var.machines : name => machine
+    if machine.node_type == "loadbalancer"
+  }
+  image_id = var.loadbalancer_image
+  key_pair = openstack_compute_keypair_v2.sshkey.id
 
   external_network_name = var.external_network_name
 

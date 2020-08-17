@@ -1,43 +1,67 @@
 package openstack
 
-type TfvarsMachinePart struct {
-	NameSlice *[]string
-	SizeMap   map[string]string
+import (
+	"fmt"
+	"strings"
+
+	"github.com/google/uuid"
+
+	"github.com/elastisys/ck8s/api"
+)
+
+type TFVars struct {
+	PrefixSC string `json:"prefix_sc" mapstructure:"prefix_sc"`
+	PrefixWC string `json:"prefix_wc" mapstructure:"prefix_wc"`
+
+	MachinesSC map[string]api.Machine `json:"machines_sc" mapstructure:"machines_sc" validate:"required,min=1"`
+	MachinesWC map[string]api.Machine `json:"machines_wc" mapstructure:"machines_wc" validate:"required,min=1"`
+
+	MasterAntiAffinityPolicySC string `json:"master_anti_affinity_policy_sc" mapstructure:"master_anti_affinity_policy_sc"`
+	WorkerAntiAffinityPolicySC string `json:"worker_anti_affinity_policy_sc" mapstructure:"worker_anti_affinity_policy_sc"`
+	MasterAntiAffinityPolicyWC string `json:"master_anti_affinity_policy_wc" mapstructure:"master_anti_affinity_policy_wc"`
+	WorkerAntiAffinityPolicyWC string `json:"worker_anti_affinity_policy_wc" mapstructure:"worker_anti_affinity_policy_wc"`
+
+	PublicIngressCIDRWhitelist []string `json:"public_ingress_cidr_whitelist" mapstructure:"public_ingress_cidr_whitelist" validate:"required"`
+
+	APIServerWhitelist []string `json:"api_server_whitelist" mapstructure:"api_server_whitelist" validate:"required"`
+	NodeportWhitelist  []string `json:"nodeport_whitelist" mapstructure:"nodeport_whitelist" validate:"required"`
+
+	AWSDNSZoneID  string `json:"aws_dns_zone_id" mapstructure:"aws_dns_zone_id" validate:"required"`
+	AWSDNSRoleARN string `json:"aws_dns_role_arn" mapstructure:"aws_dns_role_arn" validate:"required"`
+
+	ExternalNetworkID   string `json:"external_network_id" mapstructure:"external_network_id" validate:"required"`
+	ExternalNetworkName string `json:"external_network_name" mapstructure:"external_network_name" validate:"required"`
 }
 
-type OpenstackTFVars struct {
-	PrefixSC string `hcl:"prefix_sc"`
-	PrefixWC string `hcl:"prefix_wc"`
+func (e *Cluster) CloneMachine(name string) (string, error) {
+	machines := e.Machines()
 
-	// TODO: Combine these
-	MasterNamesSC       []string          `hcl:"master_names_sc" validate:"required,min=1"`
-	MasterNameSizeMapSC map[string]string `hcl:"master_name_flavor_map_sc" validate:"required"`
+	// TODO Find the root cause for this issue
+	cloneName := strings.Replace(uuid.New().String(), "-", "", -1)
 
-	// TODO: Combine these
-	WorkerNamesSC       []string          `hcl:"worker_names_sc"`
-	WorkerNameSizeMapSC map[string]string `hcl:"worker_name_flavor_map_sc"`
+	machine, ok := machines[name]
+	if !ok {
+		return "", fmt.Errorf("machine not found: %s", name)
+	}
 
-	// TODO: Combine these
-	MasterNamesWC       []string          `hcl:"master_names_wc" validate:"required,min=1"`
-	MasterNameSizeMapWC map[string]string `hcl:"master_name_flavor_map_wc" validate:"required"`
+	machines[cloneName] = machine
 
-	// TODO: Combine these
-	WorkerNamesWC       []string          `hcl:"worker_names_wc" validate:"required"`
-	WorkerNameSizeMapWC map[string]string `hcl:"worker_name_flavor_map_wc" validate:"required"`
+	return cloneName, nil
+}
 
-	MasterAntiAffinityPolicySC string `hcl:"master_anti_affinity_policy_sc"`
-	WorkerAntiAffinityPolicySC string `hcl:"worker_anti_affinity_policy_sc"`
-	MasterAntiAffinityPolicyWC string `hcl:"master_anti_affinity_policy_wc"`
-	WorkerAntiAffinityPolicyWC string `hcl:"worker_anti_affinity_policy_wc"`
+func (e *Cluster) Machines() (machines map[string]api.Machine) {
+	switch e.Config.ClusterType {
+	case api.ServiceCluster:
+		return e.TFVars.MachinesSC
+	case api.WorkloadCluster:
+		return e.TFVars.MachinesWC
+	}
 
-	PublicIngressCIDRWhitelist []string `hcl:"public_ingress_cidr_whitelist" validate:"required"`
+	panic("invalid cluster type")
+}
 
-	APIServerWhitelist []string `hcl:"api_server_whitelist" validate:"required"`
-	NodeportWhitelist  []string `hcl:"nodeport_whitelist" validate:"required"`
-
-	AWSDNSZoneID  string `hcl:"aws_dns_zone_id" validate:"required"`
-	AWSDNSRoleARN string `hcl:"aws_dns_role_arn" validate:"required"`
-
-	ExternalNetworkID   string `hcl:"external_network_id" validate:"required"`
-	ExternalNetworkName string `hcl:"external_network_name" validate:"required"`
+func (e *Cluster) RemoveMachine(name string) error {
+	machines := e.Machines()
+	delete(machines, name)
+	return nil
 }

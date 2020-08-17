@@ -43,78 +43,61 @@ func testState(
 	return tfOutput
 }
 
-func TestTerraformOutputControlPlanePublicIP(t *testing.T) {
-	testCases := map[api.ClusterType]string{
-		api.ServiceCluster:  "159.100.242.14",
-		api.WorkloadCluster: "159.100.242.17",
-	}
-
-	for clusterType, want := range testCases {
-		tfOutput := testState(t, clusterType, "ck8stest")
-
-		got := tfOutput.ControlPlanePublicIP()
-		if got != want {
-			t.Errorf(
-				"control plane public IP mismatch, want: %s, got: %s",
-				want, got,
-			)
-		}
-	}
-}
-
 func TestTerraformOutputMachines(t *testing.T) {
-	testCases := map[api.ClusterType][]api.MachineState{
-		api.ServiceCluster: {{
-			Machine: api.Machine{
-				NodeType: api.LoadBalancer,
-				Name:     "loadbalancer-0",
+	testCases := map[api.ClusterType]map[string]api.MachineState{
+		api.ServiceCluster: {
+			"loadbalancer-0": {
+				Machine: api.Machine{
+					NodeType: api.LoadBalancer,
+				},
+				PublicIP:  "159.100.242.14",
+				PrivateIP: "172.16.0.4",
 			},
-			PublicIP:  "159.100.242.14",
-			PrivateIP: "172.16.0.4",
-		}, {
-			Machine: api.Machine{
-				NodeType: api.Master,
-				Name:     "master-0",
+			"master-0": {
+				Machine: api.Machine{
+					NodeType: api.Master,
+				},
+				PublicIP:  "159.100.242.12",
+				PrivateIP: "172.16.0.1",
 			},
-			PublicIP:  "159.100.242.12",
-			PrivateIP: "172.16.0.1",
-		}, {
-			Machine: api.Machine{
-				NodeType: api.Worker,
-				Name:     "worker-0",
+			"worker-0": {
+				Machine: api.Machine{
+					NodeType: api.Worker,
+				},
+				PublicIP:  "159.100.242.13",
+				PrivateIP: "172.16.0.2",
 			},
-			PublicIP:  "159.100.242.13",
-			PrivateIP: "172.16.0.2",
-		}, {
-			Machine: api.Machine{
-				NodeType: api.Worker,
-				Name:     "worker-1",
+			"worker-1": {
+				Machine: api.Machine{
+					NodeType: api.Worker,
+				},
+				PublicIP:  "159.100.242.14",
+				PrivateIP: "172.16.0.3",
 			},
-			PublicIP:  "159.100.242.14",
-			PrivateIP: "172.16.0.3",
-		}},
-		api.WorkloadCluster: {{
-			Machine: api.Machine{
-				NodeType: api.LoadBalancer,
-				Name:     "loadbalancer-0",
+		},
+		api.WorkloadCluster: {
+			"loadbalancer-0": {
+				Machine: api.Machine{
+					NodeType: api.LoadBalancer,
+				},
+				PublicIP:  "159.100.242.17",
+				PrivateIP: "172.16.0.7",
 			},
-			PublicIP:  "159.100.242.17",
-			PrivateIP: "172.16.0.7",
-		}, {
-			Machine: api.Machine{
-				NodeType: api.Master,
-				Name:     "master-0",
+			"master-0": {
+				Machine: api.Machine{
+					NodeType: api.Master,
+				},
+				PublicIP:  "159.100.242.15",
+				PrivateIP: "172.16.0.5",
 			},
-			PublicIP:  "159.100.242.15",
-			PrivateIP: "172.16.0.5",
-		}, {
-			Machine: api.Machine{
-				NodeType: api.Worker,
-				Name:     "worker-0",
+			"worker-0": {
+				Machine: api.Machine{
+					NodeType: api.Worker,
+				},
+				PublicIP:  "159.100.242.16",
+				PrivateIP: "172.16.0.6",
 			},
-			PublicIP:  "159.100.242.16",
-			PrivateIP: "172.16.0.6",
-		}},
+		},
 	}
 
 	for clusterType, wantMachines := range testCases {
@@ -126,11 +109,8 @@ func TestTerraformOutputMachines(t *testing.T) {
 			t.Errorf("machines mismatch (-want +got):\n%s", diff)
 		}
 
-		for _, wantMachine := range wantMachines {
-			gotMachine, err := tfOutput.Machine(
-				wantMachine.NodeType,
-				wantMachine.Name,
-			)
+		for name, wantMachine := range wantMachines {
+			gotMachine, err := tfOutput.Machine(name)
 			if err != nil {
 				t.Error(err)
 			}
@@ -144,7 +124,7 @@ func TestTerraformOutputMachines(t *testing.T) {
 
 func TestTerraformOutputMachinesNotFound(t *testing.T) {
 	tfOutput := testState(t, api.ServiceCluster, "ck8stest")
-	_, err := tfOutput.Machine(api.Master, "test")
+	_, err := tfOutput.Machine("test")
 	notFoundErr := &api.MachineStateNotFoundError{}
 	if !errors.As(err, &notFoundErr) {
 		t.Error("expected MachineStateNotFoundError")

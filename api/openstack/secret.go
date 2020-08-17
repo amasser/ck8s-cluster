@@ -4,7 +4,7 @@ import (
 	"github.com/elastisys/ck8s/api"
 )
 
-type OpenstackSecret struct {
+type Secret struct {
 	api.BaseSecret `mapstructure:",squash"`
 
 	Username string `mapstructure:"OS_USERNAME" validate:"required"`

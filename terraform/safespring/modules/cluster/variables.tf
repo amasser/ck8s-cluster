@@ -39,13 +39,11 @@ variable external_network_name {
   type        = string
 }
 
-# For masters
-variable "master_names" {
-  type = list(string)
-}
-
-variable "master_name_flavor_map" {
-  type = map
+variable machines {
+  type = map(object({
+    node_type = string
+    size      = string
+  }))
 }
 
 variable "master_anti_affinity_policy" {
@@ -53,27 +51,9 @@ variable "master_anti_affinity_policy" {
   type        = string
 }
 
-# For workers
-variable "worker_names" {
-  type = list(string)
-}
-
-variable "worker_name_flavor_map" {
-  type = map
-}
-
 variable "worker_anti_affinity_policy" {
   description = "This can be set to 'anti-affinity' to spread out workers on different physical machines, otherwise leave it empty"
   type        = string
-}
-
-# For loadbalancers
-variable "loadbalancer_names" {
-  type = list(string)
-}
-
-variable "loadbalancer_name_flavor_map" {
-  type = map
 }
 
 # For DNS

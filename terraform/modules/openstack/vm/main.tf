@@ -1,7 +1,7 @@
 resource "openstack_networking_port_v2" "port" {
-  for_each = toset(var.names)
+  for_each = var.machines
 
-  name       = "${var.prefix}-${each.value}-port"
+  name       = "${var.prefix}-${each.key}-port"
   network_id = var.network_id
 
   fixed_ip {
@@ -13,16 +13,16 @@ resource "openstack_networking_port_v2" "port" {
 }
 
 resource "openstack_compute_instance_v2" "instance" {
-  for_each = toset(var.names)
+  for_each = var.machines
 
-  name = "${var.prefix}-${each.value}"
+  name = "${var.prefix}-${each.key}"
 
   image_id  = var.image_id
-  flavor_id = var.name_flavor_map[each.value]
+  flavor_id = each.value.size
   key_pair  = var.key_pair
 
   network {
-    port = openstack_networking_port_v2.port[each.value].id
+    port = openstack_networking_port_v2.port[each.key].id
   }
 
   scheduler_hints {
@@ -31,14 +31,14 @@ resource "openstack_compute_instance_v2" "instance" {
 }
 
 resource "openstack_compute_floatingip_v2" "fip" {
-  for_each = toset(var.names)
+  for_each = var.machines
 
   pool = var.external_network_name
 }
 
 resource "openstack_compute_floatingip_associate_v2" "fip_assoc" {
-  for_each = toset(var.names)
+  for_each = var.machines
 
-  floating_ip = openstack_compute_floatingip_v2.fip[each.value].address
-  instance_id = openstack_compute_instance_v2.instance[each.value].id
+  floating_ip = openstack_compute_floatingip_v2.fip[each.key].address
+  instance_id = openstack_compute_instance_v2.instance[each.key].id
 }

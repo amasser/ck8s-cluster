@@ -31,12 +31,9 @@ variable worker_ami {
   type = string
 }
 
-variable worker_nodes {
-  description = "Map of instance name to EC2 instance type."
-  type        = map
-}
-
-variable master_nodes {
-  description = "Map of instance name to EC2 instance type."
-  type        = map
+variable machines {
+  type = map(object({
+    node_type = string
+    size      = string
+  }))
 }

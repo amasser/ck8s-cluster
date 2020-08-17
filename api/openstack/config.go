@@ -4,7 +4,7 @@ import (
 	"github.com/elastisys/ck8s/api"
 )
 
-type OpenstackConfig struct {
+type Config struct {
 	api.BaseConfig `mapstructure:",squash"`
 
 	IdentityAPIVersion string `mapstructure:"OS_IDENTITY_API_VERSION" validate:"required"`

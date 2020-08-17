@@ -20,12 +20,9 @@ func Default(clusterType api.ClusterType, clusterName string) *Cluster {
 			S3RegionAddress: "sos-ch-gva-2.exo.io",
 		},
 		secret: ExoscaleSecret{
-			BaseSecret: api.BaseSecret{
-				S3AccessKey: "changeme",
-				S3SecretKey: "changeme",
-			},
-			APIKey:    "changeme",
-			SecretKey: "changeme",
+			BaseSecret: *api.DefaultBaseSecret(),
+			APIKey:     "changeme",
+			SecretKey:  "changeme",
 		},
 		tfvars: ExoscaleTFVars{
 			PublicIngressCIDRWhitelist: []string{},
@@ -38,26 +35,43 @@ func Default(clusterType api.ClusterType, clusterName string) *Cluster {
 func Development(clusterType api.ClusterType, clusterName string) api.Cluster {
 	cluster := Default(clusterType, clusterName)
 
-	cluster.tfvars.MasterNamesSC = []string{"master-0"}
-	cluster.tfvars.MasterNameSizeMapSC = map[string]string{"master-0": "Small"}
-
-	cluster.tfvars.WorkerNamesSC = []string{"worker-0", "worker-1"}
-	cluster.tfvars.WorkerNameSizeMapSC = map[string]string{
-		"worker-0": "Extra-large",
-		"worker-1": "Large",
+	cluster.tfvars.MachinesSC = map[string]ExoscaleMachine{
+		"master-0": {
+			Machine: api.Machine{
+				NodeType: api.Master,
+				Size:     "Small",
+			},
+		},
+		"worker-0": {
+			Machine: api.Machine{
+				NodeType: api.Worker,
+				Size:     "Extra-large",
+			},
+			ESLocalStorageCapacity: 26,
+		},
+		"worker-1": {
+			Machine: api.Machine{
+				NodeType: api.Worker,
+				Size:     "Large",
+			},
+			ESLocalStorageCapacity: 26,
+		},
 	}
-	cluster.tfvars.ESLocalStorageCapacityMapSC = map[string]int{
-		"worker-0": 26,
-		"worker-1": 26,
+
+	cluster.tfvars.MachinesWC = map[string]ExoscaleMachine{
+		"master-0": {
+			Machine: api.Machine{
+				NodeType: api.Master,
+				Size:     "Small",
+			},
+		},
+		"worker-0": {
+			Machine: api.Machine{
+				NodeType: api.Worker,
+				Size:     "Large",
+			},
+		},
 	}
-
-	cluster.tfvars.MasterNamesWC = []string{"master-0"}
-	cluster.tfvars.MasterNameSizeMapWC = map[string]string{"master-0": "Small"}
-
-	cluster.tfvars.WorkerNamesWC = []string{"worker-0"}
-	cluster.tfvars.WorkerNameSizeMapWC = map[string]string{"worker-0": "Large"}
-
-	cluster.tfvars.ESLocalStorageCapacityMapWC = map[string]int{"worker-0": 0}
 
 	cluster.tfvars.NFSSize = "Small"
 

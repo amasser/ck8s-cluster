@@ -40,40 +40,18 @@ variable ssh_pub_key_wc {
   type = string
 }
 
-variable worker_nodes_sc {
-  description = "Map of instance name to EC2 instance type."
-  type        = map
-
-  default = {
-    "worker-0" : "t3.small"
-  }
+variable machines_sc {
+  type = map(object({
+    node_type = string
+    size      = string
+  }))
 }
 
-variable worker_nodes_wc {
-  description = "Map of instance name to EC2 instance type."
-  type        = map
-
-  default = {
-    "worker-0" : "t3.small"
-  }
-}
-
-variable master_nodes_sc {
-  description = "Map of instance name to EC2 instance type."
-  type        = map
-
-  default = {
-    "master-0" : "t3.small"
-  }
-}
-
-variable master_nodes_wc {
-  description = "Map of instance name to EC2 instance type."
-  type        = map
-
-  default = {
-    "master-0" : "t3.small"
-  }
+variable machines_wc {
+  type = map(object({
+    node_type = string
+    size      = string
+  }))
 }
 
 # BaseOS 0.0.6, US West 1, k8s 1.15.11

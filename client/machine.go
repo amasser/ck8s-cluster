@@ -43,8 +43,7 @@ func NewMachineClient(
 
 		baseLogger: logger,
 		logger: logger.With(
-			zap.String("name", machine.Name),
-			zap.String("node_type", machine.NodeType.String()),
+			zap.String("node_type", string(machine.NodeType)),
 		),
 	}
 }

@@ -12,9 +12,9 @@ import (
 
 func init() {
 	rootCmd.AddCommand(&cobra.Command{
-		Use:   "get NODE_TYPE NAME",
+		Use:   "get NAME",
 		Short: "Get machine details",
-		Args:  ExactArgs(2),
+		Args:  ExactArgs(1),
 		RunE:  withClusterClient(machineGet),
 	})
 
@@ -38,17 +38,17 @@ func init() {
 	rootCmd.AddCommand(listCmd)
 
 	rootCmd.AddCommand(&cobra.Command{
-		Use:   "ssh NODE_TYPE NAME",
+		Use:   "ssh NAME",
 		Short: "Open an SSH login shell on a machine",
-		Args:  ExactArgs(2),
+		Args:  ExactArgs(1),
 		RunE:  withClusterClient(machineSSH),
 	})
 }
 
-func printMachine(machine api.MachineState) {
+func printMachine(name string, machine api.MachineState) {
 	fmt.Println(
 		machine.NodeType,
-		machine.Name,
+		name,
 		machine.PublicIP,
 		machine.PrivateIP,
 	)
@@ -59,19 +59,14 @@ func machineGet(
 	cmd *cobra.Command,
 	args []string,
 ) error {
-	nodeType, err := parseNodeTypeFlag(args[0])
-	if err != nil {
-		return err
-	}
+	name := args[0]
 
-	name := args[1]
-
-	machine, err := clusterClient.CurrentMachine(nodeType, name)
+	machine, err := clusterClient.CurrentMachine(name)
 	if err != nil {
 		return fmt.Errorf("error getting machine: %s", err)
 	}
 
-	printMachine(machine)
+	printMachine(name, machine)
 
 	return nil
 }
@@ -81,27 +76,19 @@ func machineList(
 	cmd *cobra.Command,
 	args []string,
 ) error {
-	var nodeType api.NodeType
-
-	nodeTypeStr := viper.GetString(nodeTypeFlag)
-	if nodeTypeStr != "" {
-		var err error
-		if nodeType, err = parseNodeTypeFlag(nodeTypeStr); err != nil {
-			return err
-		}
-	}
+	nodeType := api.NodeType(viper.GetString(nodeTypeFlag))
 
 	machines, err := clusterClient.CurrentMachines()
 	if err != nil {
 		return fmt.Errorf("error listing machines: %s", err)
 	}
 
-	for _, machine := range machines {
-		if nodeType != 0 && machine.NodeType != nodeType {
+	for name, machine := range machines {
+		if nodeType != "" && machine.NodeType != nodeType {
 			continue
 		}
 
-		printMachine(machine)
+		printMachine(name, machine)
 	}
 
 	return nil
@@ -112,14 +99,9 @@ func machineSSH(
 	cmd *cobra.Command,
 	args []string,
 ) error {
-	nodeType, err := parseNodeTypeFlag(args[0])
-	if err != nil {
-		return err
-	}
+	name := args[0]
 
-	name := args[1]
-
-	machine, err := clusterClient.CurrentMachine(nodeType, name)
+	machine, err := clusterClient.CurrentMachine(name)
 	if err != nil {
 		return fmt.Errorf("error getting machine: %w", err)
 	}

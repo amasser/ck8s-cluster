@@ -1,0 +1,36 @@
+{
+  "region": "us-west-1",
+  "prefix_sc": "",
+  "prefix_wc": "",
+  "machines_sc": {
+    "master-0": {
+      "node_type": "master",
+      "size": "t3.small"
+    },
+    "worker-0": {
+      "node_type": "worker",
+      "size": "t3.xlarge"
+    },
+    "worker-1": {
+      "node_type": "worker",
+      "size": "t3.large"
+    }
+  },
+  "machines_wc": {
+    "master-0": {
+      "node_type": "master",
+      "size": "t3.small"
+    },
+    "worker-0": {
+      "node_type": "worker",
+      "size": "t3.large"
+    },
+    "worker-1": {
+      "node_type": "worker",
+      "size": "t3.large"
+    }
+  },
+  "public_ingress_cidr_whitelist": ["1.2.3.4/32", "4.3.2.1/32"],
+  "api_server_whitelist": ["1.2.3.4/32", "4.3.2.1/32"],
+  "nodeport_whitelist": ["1.2.3.4/32", "4.3.2.1/32"]
+}

@@ -431,12 +431,12 @@ func (c *ClusterClient) TerraformDestroy() error {
 	return nil
 }
 
-func (c *ClusterClient) DesiredMachines() []api.Machine {
+func (c *ClusterClient) DesiredMachines() map[string]api.Machine {
 	c.logger.Info("client_desired_machines")
 	return c.cluster.Machines()
 }
 
-func (c *ClusterClient) CurrentMachines() ([]api.MachineState, error) {
+func (c *ClusterClient) CurrentMachines() (map[string]api.MachineState, error) {
 	c.logger.Info("client_current_machines")
 
 	state, err := c.state()
@@ -447,13 +447,9 @@ func (c *ClusterClient) CurrentMachines() ([]api.MachineState, error) {
 	return state.Machines(), nil
 }
 
-func (c *ClusterClient) CurrentMachine(
-	nodeType api.NodeType,
-	name string,
-) (api.MachineState, error) {
+func (c *ClusterClient) CurrentMachine(name string) (api.MachineState, error) {
 	c.logger.Info(
 		"client_current_machine",
-		zap.String("node_type", nodeType.String()),
 		zap.String("name", name),
 	)
 
@@ -462,20 +458,16 @@ func (c *ClusterClient) CurrentMachine(
 		return api.MachineState{}, err
 	}
 
-	return state.Machine(nodeType, name)
+	return state.Machine(name)
 }
 
-func (c *ClusterClient) CloneNode(
-	nodeType api.NodeType,
-	name string,
-) error {
+func (c *ClusterClient) CloneNode(name string) error {
 	c.logger.Info(
 		"client_node_clone",
-		zap.String("node_type", nodeType.String()),
 		zap.String("name", name),
 	)
 
-	cloneName, err := c.cluster.CloneMachine(nodeType, name)
+	cloneName, err := c.cluster.CloneMachine(name)
 	if err != nil {
 		return fmt.Errorf("error cloning machine: %w", err)
 	}
@@ -487,7 +479,7 @@ func (c *ClusterClient) CloneNode(
 		return fmt.Errorf("error applying Terraform config: %w", err)
 	}
 
-	machine, err := c.CurrentMachine(nodeType, cloneName)
+	machine, err := c.CurrentMachine(cloneName)
 	if err != nil {
 		return fmt.Errorf("error getting machine: %w", err)
 	}
@@ -535,8 +527,8 @@ func (c *ClusterClient) NodeExists(name string) (bool, error) {
 	return true, nil
 }
 
-func (c *ClusterClient) ResetNode(nodeType api.NodeType, name string) error {
-	machine, err := c.CurrentMachine(nodeType, name)
+func (c *ClusterClient) ResetNode(name string) error {
+	machine, err := c.CurrentMachine(name)
 	if err != nil {
 		return fmt.Errorf("error getting machine: %w", err)
 	}
@@ -549,9 +541,8 @@ func (c *ClusterClient) ResetNode(nodeType api.NodeType, name string) error {
 	return c.kubectl.DeleteNode(name)
 }
 
-func (c *ClusterClient) RemoveNode(nodeType api.NodeType, name string) error {
+func (c *ClusterClient) RemoveNode(name string) error {
 	logger := c.logger.With(
-		zap.String("node_type", nodeType.String()),
 		zap.String("name", name),
 	)
 
@@ -571,12 +562,12 @@ func (c *ClusterClient) RemoveNode(nodeType api.NodeType, name string) error {
 	}
 
 	// TODO: Do not throw error if the node hasn't joined k8s
-	if err := c.ResetNode(nodeType, name); err != nil {
+	if err := c.ResetNode(name); err != nil {
 		return fmt.Errorf("error resetting node: %w", err)
 	}
 
 	// TODO: handle machine already removed from tfvars
-	if err := c.cluster.RemoveMachine(nodeType, name); err != nil {
+	if err := c.cluster.RemoveMachine(name); err != nil {
 		return fmt.Errorf("error removing machine: %w", err)
 	}
 	if err := c.configHandler.WriteTFVars(c.cluster); err != nil {
@@ -594,10 +585,9 @@ func (c *ClusterClient) RemoveNode(nodeType api.NodeType, name string) error {
 	return nil
 }
 
-func (c *ClusterClient) ReplaceNode(nodeType api.NodeType, name string) error {
+func (c *ClusterClient) ReplaceNode(name string) error {
 	c.logger.Info(
 		"client_node_replace",
-		zap.String("node_type", nodeType.String()),
 		zap.String("name", name),
 	)
 	if err := c.terraform.Init(); err != nil {
@@ -611,11 +601,11 @@ func (c *ClusterClient) ReplaceNode(nodeType api.NodeType, name string) error {
 		return fmt.Errorf("error checking if Terraform plan has diff: %w", err)
 	}
 
-	if err := c.CloneNode(nodeType, name); err != nil {
+	if err := c.CloneNode(name); err != nil {
 		return err
 	}
 
-	if err := c.RemoveNode(nodeType, name); err != nil {
+	if err := c.RemoveNode(name); err != nil {
 		return err
 	}
 

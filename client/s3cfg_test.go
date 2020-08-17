@@ -57,11 +57,11 @@ func TestRenderS3CfgPlaintextOpenstack(t *testing.T) {
 		safespring.Default(api.ServiceCluster, "testName"),
 		citycloud.Default(api.ServiceCluster, "testName"),
 	} {
-		config, ok := cluster.Config().(*openstack.OpenstackConfig)
+		config, ok := cluster.Config().(*openstack.Config)
 		if !ok {
 			panic("WRONG TYPE")
 		}
-		secret, ok := cluster.Secret().(*openstack.OpenstackSecret)
+		secret, ok := cluster.Secret().(*openstack.Secret)
 		if !ok {
 			panic("WRONG TYPE")
 		}

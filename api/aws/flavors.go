@@ -47,23 +47,35 @@ func Development(clusterType api.ClusterType, clusterName string) api.Cluster {
 
 	cluster.tfvars.Region = "us-west-1"
 
-	cluster.tfvars.MasterNodesSC = map[string]string{
-		"master-0": "t3.small",
+	cluster.tfvars.MachinesSC = map[string]api.Machine{
+		"master-0": {
+			NodeType: api.Master,
+			Size:     "t3.small",
+		},
+		"worker-0": {
+			NodeType: api.Worker,
+			Size:     "t3.xlarge",
+		},
+		"worker-1": {
+			NodeType: api.Worker,
+			Size:     "t3.large",
+		},
 	}
 
-	cluster.tfvars.WorkerNodesSC = map[string]string{
-		"worker-0": "t3.xlarge",
-		"worker-1": "t3.large",
-	}
-
-	cluster.tfvars.MasterNodesWC = map[string]string{
-		"master-0": "t3.small",
-	}
-
-	// TODO Should we use two nodes here?
-	cluster.tfvars.WorkerNodesWC = map[string]string{
-		"worker-0": "t3.large",
-		"worker-1": "t3.large",
+	cluster.tfvars.MachinesWC = map[string]api.Machine{
+		"master-0": {
+			NodeType: api.Master,
+			Size:     "t3.small",
+		},
+		"worker-0": {
+			NodeType: api.Worker,
+			Size:     "t3.large",
+		},
+		// TODO Should we use two nodes here?
+		"worker-1": {
+			NodeType: api.Worker,
+			Size:     "t3.large",
+		},
 	}
 
 	return cluster

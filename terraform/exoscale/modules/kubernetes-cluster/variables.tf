@@ -8,20 +8,12 @@ variable "zone" {
 
 variable "prefix" {}
 
-variable "worker_names" {
-  type = list(string)
-}
-
-variable "worker_name_size_map" {
-  type = map
-}
-
-variable "master_names" {
-  type = list(string)
-}
-
-variable "master_name_size_map" {
-  type = map
+variable "machines" {
+  type = map(object({
+    node_type                 = string
+    size                      = string
+    es_local_storage_capacity = string
+  }))
 }
 
 variable "nfs_size" {}
@@ -54,8 +46,3 @@ variable "dns_list" {
 variable "dns_suffix" {}
 
 variable "dns_prefix" {}
-
-variable es_local_storage_capacity_map {
-  description = "Map of the size in GB of the Elasticsearch node local storage file system."
-  type        = map
-}

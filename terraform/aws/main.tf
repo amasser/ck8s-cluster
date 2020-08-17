@@ -29,8 +29,7 @@ module "service_cluster" {
 
   ssh_pub_key = var.ssh_pub_key_sc
 
-  worker_nodes = var.worker_nodes_sc
-  master_nodes = var.master_nodes_sc
+  machines = var.machines_sc
 }
 
 module "workload_cluster" {
@@ -48,6 +47,5 @@ module "workload_cluster" {
 
   ssh_pub_key = var.ssh_pub_key_wc
 
-  worker_nodes = var.worker_nodes_wc
-  master_nodes = var.master_nodes_wc
+  machines = var.machines_wc
 }

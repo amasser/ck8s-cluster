@@ -1,4 +1,4 @@
-package aws
+package openstack
 
 import (
 	"testing"
@@ -12,22 +12,23 @@ func TestCloneMachine(t *testing.T) {
 	testName := "foo"
 
 	type tfvarsPart struct {
-		nameSizeMap map[string]string
+		NameSlice []string
+		SizeMap   map[string]string
 	}
 
-	cluster := Default(-1, "testName")
+	cluster := Default(-1, "", "testName")
 
-	cluster.tfvars.MachinesSC = map[string]api.Machine{
+	cluster.TFVars.MachinesSC = map[string]api.Machine{
 		testName: {
 			NodeType: api.Master,
-			Size:     "t3.small",
+			Size:     "a1093fde-0772-474b-aced-42a5a2d36814",
 		},
 	}
 
-	cluster.tfvars.MachinesWC = map[string]api.Machine{
+	cluster.TFVars.MachinesWC = map[string]api.Machine{
 		testName: {
 			NodeType: api.Worker,
-			Size:     "t3.large",
+			Size:     "3232fa6c-3af1-4608-b0f9-acce2415a7a8",
 		},
 	}
 
@@ -35,21 +36,7 @@ func TestCloneMachine(t *testing.T) {
 		api.ServiceCluster,
 		api.WorkloadCluster,
 	} {
-		cluster.config.ClusterType = clusterType
-
-		if _, err := cluster.CloneMachine(testName); err != nil {
-			t.Fatalf(
-				"error while cloning %s machine: %s",
-				clusterType.String(), err,
-			)
-		}
-	}
-
-	for _, clusterType := range []api.ClusterType{
-		api.ServiceCluster,
-		api.WorkloadCluster,
-	} {
-		cluster.config.ClusterType = clusterType
+		cluster.Config.ClusterType = clusterType
 
 		cloneName, err := cluster.CloneMachine(testName)
 		if err != nil {
@@ -77,24 +64,25 @@ func TestCloneMachine(t *testing.T) {
 func TestRemoveMachine(t *testing.T) {
 	testName := "bar"
 
-	got, want := Default(-1, "testName"), Default(-1, "testName")
+	got := Default(-1, api.Safespring, "testName")
+	want := Default(-1, api.CityCloud, "testName")
 
-	got.tfvars = AWSTFVars{
+	got.TFVars = TFVars{
 		MachinesSC: map[string]api.Machine{
 			testName: {
 				NodeType: api.Master,
-				Size:     "t3.small",
+				Size:     "a1093fde-0772-474b-aced-42a5a2d36814",
 			},
 		},
 		MachinesWC: map[string]api.Machine{
 			testName: {
 				NodeType: api.Worker,
-				Size:     "t3.large",
+				Size:     "3232fa6c-3af1-4608-b0f9-acce2415a7a8",
 			},
 		},
 	}
 
-	want.tfvars = AWSTFVars{
+	want.TFVars = TFVars{
 		MachinesSC: map[string]api.Machine{},
 		MachinesWC: map[string]api.Machine{},
 	}
@@ -103,7 +91,7 @@ func TestRemoveMachine(t *testing.T) {
 		api.ServiceCluster,
 		api.WorkloadCluster,
 	} {
-		got.config.ClusterType = clusterType
+		got.Config.ClusterType = clusterType
 
 		if err := got.RemoveMachine(testName); err != nil {
 			t.Fatalf(
@@ -113,7 +101,7 @@ func TestRemoveMachine(t *testing.T) {
 		}
 	}
 
-	if diff := cmp.Diff(want.tfvars, got.tfvars); diff != "" {
+	if diff := cmp.Diff(want.TFVars, got.TFVars); diff != "" {
 		t.Errorf("mismatch (-want +got):\n%s", diff)
 	}
 }

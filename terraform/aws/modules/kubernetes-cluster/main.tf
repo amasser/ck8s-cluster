@@ -338,7 +338,10 @@ resource "aws_key_pair" "auth" {
 # Master instance
 
 resource "aws_instance" "master" {
-  for_each = var.master_nodes
+  for_each = {
+    for name, machine in var.machines : name => machine
+    if machine.node_type == "master"
+  }
 
   connection {
     user = "ubuntu"
@@ -347,7 +350,7 @@ resource "aws_instance" "master" {
 
   associate_public_ip_address = true
 
-  instance_type          = each.value
+  instance_type          = each.value.size
   ami                    = var.master_ami
   vpc_security_group_ids = [aws_security_group.master_sg.id, aws_security_group.cluster_sg.id]
   subnet_id              = aws_subnet.main_sn.id
@@ -373,7 +376,10 @@ resource "aws_instance" "master" {
 # Worker instance
 
 resource "aws_instance" "worker" {
-  for_each = var.worker_nodes
+  for_each = {
+    for name, machine in var.machines : name => machine
+    if machine.node_type == "worker"
+  }
 
   connection {
     user = "ubuntu"
@@ -382,7 +388,7 @@ resource "aws_instance" "worker" {
 
   associate_public_ip_address = true
 
-  instance_type          = each.value
+  instance_type          = each.value.size
   ami                    = var.worker_ami
   vpc_security_group_ids = [aws_security_group.worker_sg.id, aws_security_group.cluster_sg.id]
   subnet_id              = aws_subnet.main_sn.id

@@ -15,10 +15,7 @@ module "service_cluster" {
 
   prefix = var.prefix_sc == "" ? "${terraform.workspace}-service-cluster" : var.prefix_sc
 
-  worker_names         = var.worker_names_sc
-  worker_name_size_map = var.worker_name_size_map_sc
-  master_names         = var.master_names_sc
-  master_name_size_map = var.master_name_size_map_sc
+  machines = var.machines_sc
 
   compute_instance_image = var.compute_instance_image
   nfs_size               = var.nfs_size
@@ -39,8 +36,6 @@ module "service_cluster" {
   public_ingress_cidr_whitelist = var.public_ingress_cidr_whitelist
   api_server_whitelist          = var.api_server_whitelist
   nodeport_whitelist            = var.nodeport_whitelist
-
-  es_local_storage_capacity_map = var.es_local_storage_capacity_map_sc
 }
 
 
@@ -49,10 +44,7 @@ module "workload_cluster" {
 
   prefix = var.prefix_wc == "" ? "${terraform.workspace}-workload-cluster" : var.prefix_wc
 
-  worker_names         = var.worker_names_wc
-  worker_name_size_map = var.worker_name_size_map_wc
-  master_names         = var.master_names_wc
-  master_name_size_map = var.master_name_size_map_wc
+  machines = var.machines_wc
 
   compute_instance_image = var.compute_instance_image
   nfs_size               = var.nfs_size
@@ -69,6 +61,4 @@ module "workload_cluster" {
   public_ingress_cidr_whitelist = var.public_ingress_cidr_whitelist
   api_server_whitelist          = var.api_server_whitelist
   nodeport_whitelist            = var.nodeport_whitelist
-
-  es_local_storage_capacity_map = var.es_local_storage_capacity_map_wc
 }

@@ -107,8 +107,8 @@ ck8s init <environment name> <cloud provider> [--pgp-fp <PGP key fingerprint>] [
 ```
 
 This will create some files that you need to edit to make it work. The minimum requirements is that you edit
-`${CK8S_CONFIG_PATH}/config.tfvars` to include your IP address in the whitelists and that you add your credentials to
-the sops encrypted file `${CK8S_CONFIG_PATH}/secrets.env`.  
+`${CK8S_CONFIG_PATH}/tfvars.json` to include your IP address in the whitelists and that you add your credentials to
+the sops encrypted file `${CK8S_CONFIG_PATH}/secrets.env`.
 See [here](#configuration) for more information
 
 Note that if there already exists a terraform workspace with the same name as your environment name, then you may need to destroy it
@@ -150,7 +150,7 @@ values that needs to be provided by you
 * `OS_PROJECT_ID`: Openstack project ID to use
 * `OS_USER_DOMAIN_NAME`: Openstack user domain name to use
 
-#### `config.tfvars`
+#### `tfvars.json`
 
 * `public_ingress_cidr_whitelist`: IP whitelist of ssh port
 * `api_server_whitelist`: IP whitelist of api server

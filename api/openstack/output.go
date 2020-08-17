@@ -2,7 +2,6 @@ package openstack
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 
 	"github.com/elastisys/ck8s/api"
@@ -93,68 +92,49 @@ func (e *TerraformOutput) ControlPlanePublicIP() string {
 	}
 }
 
-func (e *TerraformOutput) Machines() (machines []api.MachineState) {
+func (e *TerraformOutput) Machines() map[string]api.MachineState {
+	machines := map[string]api.MachineState{}
+
 	switch e.ClusterType {
 	case api.ServiceCluster:
-		machines = append(
-			machines,
-			e.GetMachinesState(api.Master, e.SCMasterIPs)...,
-		)
-		machines = append(
-			machines,
-			e.GetMachinesState(api.Worker, e.SCWorkerIPs)...,
-		)
+		e.GetMachinesState(machines, api.Master, e.SCMasterIPs)
+		e.GetMachinesState(machines, api.Worker, e.SCWorkerIPs)
 	case api.WorkloadCluster:
-		machines = append(
-			machines,
-			e.GetMachinesState(api.Master, e.WCMasterIPs)...,
-		)
-		machines = append(
-			machines,
-			e.GetMachinesState(api.Worker, e.WCWorkerIPs)...,
-		)
+		e.GetMachinesState(machines, api.Master, e.WCMasterIPs)
+		e.GetMachinesState(machines, api.Worker, e.WCWorkerIPs)
 	default:
 		panic(fmt.Sprintf("invalid cluster type: %s", e.ClusterType))
 	}
 
-	// TODO: Remove when machine states are no longer maps in output
-	sort.Slice(machines, func(i, j int) bool {
-		return machines[i].Name < machines[j].Name
-	})
-
-	return
+	return machines
 }
 
 func (e *TerraformOutput) Machine(
-	nodeType api.NodeType,
 	name string,
 ) (machine api.MachineState, err error) {
-	for _, machine = range e.Machines() {
-		if machine.NodeType == nodeType && machine.Name == name {
-			return
+	var ok bool
+	if machine, ok = e.Machines()[name]; !ok {
+		err = &api.MachineStateNotFoundError{
+			Name: name,
 		}
-	}
-
-	err = &api.MachineStateNotFoundError{
-		NodeType: nodeType,
-		Name:     name,
 	}
 	return
 }
 
 func (e *TerraformOutput) GetMachinesState(
+	machines map[string]api.MachineState,
 	nodeType api.NodeType,
 	IPs TfOutputIPsObject,
-) (machines []api.MachineState) {
+) {
 	for name, ipsValue := range IPs.Value {
-		machines = append(machines, api.MachineState{
+		name = strings.TrimPrefix(name, e.ClusterName+"-")
+		machines[name] = api.MachineState{
 			Machine: api.Machine{
 				NodeType: nodeType,
-				Name:     strings.TrimPrefix(name, e.ClusterName+"-"),
+				// TODO: Output machine size
 			},
 			PublicIP:  ipsValue.PublicIP,
 			PrivateIP: ipsValue.PrivateIP,
-		})
+		}
 	}
-	return
 }

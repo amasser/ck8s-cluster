@@ -26,42 +26,42 @@ func TestRenderAnsibleInventory(t *testing.T) {
 
 	testCases := []testCase{{
 		"testdata/exoscale-ansible-hosts-sc.ini",
-		"testdata/exoscale.tfvars",
+		"testdata/exoscale-tfvars.json",
 		"testdata/exoscale-terraform-output.json",
 		exoscale.Default(api.ServiceCluster, "ck8stest"),
 	}, {
 		"testdata/exoscale-ansible-hosts-wc.ini",
-		"testdata/exoscale.tfvars",
+		"testdata/exoscale-tfvars.json",
 		"testdata/exoscale-terraform-output.json",
 		exoscale.Default(api.WorkloadCluster, "ck8stest"),
 	}, {
 		"testdata/safespring-ansible-hosts-sc.ini",
-		"testdata/safespring.tfvars",
+		"testdata/safespring-tfvars.json",
 		"testdata/safespring-terraform-output.json",
 		safespring.Default(api.ServiceCluster, "ck8stest"),
 	}, {
 		"testdata/safespring-ansible-hosts-wc.ini",
-		"testdata/safespring.tfvars",
+		"testdata/safespring-tfvars.json",
 		"testdata/safespring-terraform-output.json",
 		safespring.Default(api.WorkloadCluster, "ck8stest"),
 	}, {
 		"testdata/citycloud-ansible-hosts-sc.ini",
-		"testdata/citycloud.tfvars",
+		"testdata/citycloud-tfvars.json",
 		"testdata/citycloud-terraform-output.json",
 		citycloud.Default(api.ServiceCluster, "ck8stest"),
 	}, {
 		"testdata/citycloud-ansible-hosts-wc.ini",
-		"testdata/citycloud.tfvars",
+		"testdata/citycloud-tfvars.json",
 		"testdata/citycloud-terraform-output.json",
 		citycloud.Default(api.WorkloadCluster, "ck8stest"),
 	}, {
 		"testdata/aws-ansible-hosts-sc.ini",
-		"testdata/aws.tfvars",
+		"testdata/aws-tfvars.json",
 		"testdata/aws-terraform-output.json",
 		aws.Default(api.ServiceCluster, "ck8stest"),
 	}, {
 		"testdata/aws-ansible-hosts-wc.ini",
-		"testdata/aws.tfvars",
+		"testdata/aws-tfvars.json",
 		"testdata/aws-terraform-output.json",
 		aws.Default(api.WorkloadCluster, "ck8stest"),
 	}}
@@ -73,7 +73,9 @@ func TestRenderAnsibleInventory(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		hclDecode(tfvarsData, tc.cluster.TFVars())
+		if err := json.Unmarshal(tfvarsData, tc.cluster.TFVars()); err != nil {
+			t.Fatal(err)
+		}
 
 		state, err := tc.cluster.State(func(state interface{}) error {
 			tfOutputData, err := ioutil.ReadFile(tc.terraformOutputPath)

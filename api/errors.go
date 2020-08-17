@@ -43,15 +43,11 @@ var PathNotFoundErr = errors.New("not found")
 
 // MachineStateNotFoundError is returned if a machine is not found.
 type MachineStateNotFoundError struct {
-	NodeType NodeType
-	Name     string
+	Name string
 }
 
 func (e *MachineStateNotFoundError) Error() string {
-	return fmt.Sprintf(
-		"machine not found (node type '%s'): %s",
-		e.NodeType, e.Name,
-	)
+	return fmt.Sprintf("machine not found: %s", e.Name)
 }
 
 type UnsupportedClusterFlavorError struct {

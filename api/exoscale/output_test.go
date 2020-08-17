@@ -79,44 +79,46 @@ func TestTerraformOutputControlPlanePublicIP(t *testing.T) {
 }
 
 func TestTerraformOutputMachines(t *testing.T) {
-	testCases := map[api.ClusterType][]api.MachineState{
-		api.ServiceCluster: {{
-			Machine: api.Machine{
-				NodeType: api.Master,
-				Name:     "master-0",
+	testCases := map[api.ClusterType]map[string]api.MachineState{
+		api.ServiceCluster: {
+			"master-0": {
+				Machine: api.Machine{
+					NodeType: api.Master,
+				},
+				PublicIP:  "159.100.242.187",
+				PrivateIP: "172.0.10.205",
 			},
-			PublicIP:  "159.100.242.187",
-			PrivateIP: "172.0.10.205",
-		}, {
-			Machine: api.Machine{
-				NodeType: api.Worker,
-				Name:     "worker-0",
+			"worker-0": {
+				Machine: api.Machine{
+					NodeType: api.Worker,
+				},
+				PublicIP:  "159.100.242.78",
+				PrivateIP: "172.0.10.59",
 			},
-			PublicIP:  "159.100.242.78",
-			PrivateIP: "172.0.10.59",
-		}, {
-			Machine: api.Machine{
-				NodeType: api.Worker,
-				Name:     "worker-1",
+			"worker-1": {
+				Machine: api.Machine{
+					NodeType: api.Worker,
+				},
+				PublicIP:  "89.145.167.81",
+				PrivateIP: "172.0.10.72",
 			},
-			PublicIP:  "89.145.167.81",
-			PrivateIP: "172.0.10.72",
-		}},
-		api.WorkloadCluster: {{
-			Machine: api.Machine{
-				NodeType: api.Master,
-				Name:     "master-0",
+		},
+		api.WorkloadCluster: {
+			"master-0": {
+				Machine: api.Machine{
+					NodeType: api.Master,
+				},
+				PublicIP:  "159.100.244.19",
+				PrivateIP: "172.0.10.132",
 			},
-			PublicIP:  "159.100.244.19",
-			PrivateIP: "172.0.10.132",
-		}, {
-			Machine: api.Machine{
-				NodeType: api.Worker,
-				Name:     "worker-0",
+			"worker-0": {
+				Machine: api.Machine{
+					NodeType: api.Worker,
+				},
+				PublicIP:  "89.145.167.114",
+				PrivateIP: "172.0.10.72",
 			},
-			PublicIP:  "89.145.167.114",
-			PrivateIP: "172.0.10.72",
-		}},
+		},
 	}
 
 	for clusterType, wantMachines := range testCases {
@@ -128,16 +130,11 @@ func TestTerraformOutputMachines(t *testing.T) {
 			t.Errorf("machines mismatch (-want +got):\n%s", diff)
 		}
 
-		for _, wantMachine := range wantMachines {
-			gotMachine, err := tfOutput.Machine(
-				wantMachine.NodeType,
-				wantMachine.Name,
-			)
+		for name, wantMachine := range wantMachines {
+			gotMachine, err := tfOutput.Machine(name)
 			if err != nil {
 				t.Error(err)
-			}
-
-			if diff := cmp.Diff(wantMachine, gotMachine); diff != "" {
+			} else if diff := cmp.Diff(wantMachine, gotMachine); diff != "" {
 				t.Errorf("machine mismatch (-want +got):\n%s", diff)
 			}
 		}
@@ -146,7 +143,7 @@ func TestTerraformOutputMachines(t *testing.T) {
 
 func TestTerraformOutputMachinesNotFound(t *testing.T) {
 	tfOutput := testState(t, api.ServiceCluster, "ck8stest")
-	_, err := tfOutput.Machine(api.Master, "test")
+	_, err := tfOutput.Machine("test")
 	notFoundErr := &api.MachineStateNotFoundError{}
 	if !errors.As(err, &notFoundErr) {
 		t.Error("expected MachineStateNotFoundError")

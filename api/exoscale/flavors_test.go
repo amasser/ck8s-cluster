@@ -71,20 +71,46 @@ func TestFlavors(t *testing.T) {
 				SecretKey: "changeme",
 			},
 			tfvars: ExoscaleTFVars{
-				PublicIngressCIDRWhitelist:  []string{},
-				APIServerWhitelist:          []string{},
-				NodeportWhitelist:           []string{},
-				MasterNamesSC:               []string{"master-0"},
-				MasterNameSizeMapSC:         map[string]string{"master-0": "Small"},
-				WorkerNamesSC:               []string{"worker-0", "worker-1"},
-				WorkerNameSizeMapSC:         map[string]string{"worker-0": "Extra-large", "worker-1": "Large"},
-				ESLocalStorageCapacityMapSC: map[string]int{"worker-0": 26, "worker-1": 26},
-				MasterNamesWC:               []string{"master-0"},
-				MasterNameSizeMapWC:         map[string]string{"master-0": "Small"},
-				WorkerNamesWC:               []string{"worker-0"},
-				WorkerNameSizeMapWC:         map[string]string{"worker-0": "Large"},
-				ESLocalStorageCapacityMapWC: map[string]int{"worker-0": 0},
-				NFSSize:                     "Small",
+				PublicIngressCIDRWhitelist: []string{},
+				APIServerWhitelist:         []string{},
+				NodeportWhitelist:          []string{},
+				MachinesSC: map[string]ExoscaleMachine{
+					"master-0": {
+						Machine: api.Machine{
+							NodeType: api.Master,
+							Size:     "Small",
+						},
+					},
+					"worker-0": {
+						Machine: api.Machine{
+							NodeType: api.Worker,
+							Size:     "Extra-large",
+						},
+						ESLocalStorageCapacity: 26,
+					},
+					"worker-1": {
+						Machine: api.Machine{
+							NodeType: api.Worker,
+							Size:     "Large",
+						},
+						ESLocalStorageCapacity: 26,
+					},
+				},
+				MachinesWC: map[string]ExoscaleMachine{
+					"master-0": {
+						Machine: api.Machine{
+							NodeType: api.Master,
+							Size:     "Small",
+						},
+					},
+					"worker-0": {
+						Machine: api.Machine{
+							NodeType: api.Worker,
+							Size:     "Large",
+						},
+					},
+				},
+				NFSSize: "Small",
 			},
 		},
 		got: Development(clusterType, clusterName),

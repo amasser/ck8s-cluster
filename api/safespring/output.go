@@ -2,69 +2,42 @@ package safespring
 
 import (
 	"fmt"
-	"sort"
 
 	"github.com/elastisys/ck8s/api"
 	"github.com/elastisys/ck8s/api/openstack"
 )
 
 type terraformOutput struct {
-	openstack.TerraformOutput `mapstructure:",squash"`
+	openstack.TerraformOutput
 }
 
-func (e *terraformOutput) Machines() (machines []api.MachineState) {
+func (e *terraformOutput) Machines() map[string]api.MachineState {
+	machines := map[string]api.MachineState{}
+
 	switch e.ClusterType {
 	case api.ServiceCluster:
-		machines = append(
-			machines,
-			e.TerraformOutput.GetMachinesState(api.Master, e.TerraformOutput.SCMasterIPs)...,
-		)
-		machines = append(
-			machines,
-			e.TerraformOutput.GetMachinesState(api.Worker, e.TerraformOutput.SCWorkerIPs)...,
-		)
-		machines = append(
-			machines,
-			e.TerraformOutput.GetMachinesState(api.LoadBalancer, e.SCControlPlaneLBIPs)...,
-		)
+		e.GetMachinesState(machines, api.Master, e.SCMasterIPs)
+		e.GetMachinesState(machines, api.Worker, e.SCWorkerIPs)
+		e.GetMachinesState(machines, api.LoadBalancer, e.SCControlPlaneLBIPs)
 	case api.WorkloadCluster:
-		machines = append(
-			machines,
-			e.TerraformOutput.GetMachinesState(api.Master, e.TerraformOutput.WCMasterIPs)...,
-		)
-		machines = append(
-			machines,
-			e.TerraformOutput.GetMachinesState(api.Worker, e.TerraformOutput.WCWorkerIPs)...,
-		)
-		machines = append(
-			machines,
-			e.TerraformOutput.GetMachinesState(api.LoadBalancer, e.WCControlPlaneLBIPs)...,
-		)
+		e.GetMachinesState(machines, api.Master, e.WCMasterIPs)
+		e.GetMachinesState(machines, api.Worker, e.WCWorkerIPs)
+		e.GetMachinesState(machines, api.LoadBalancer, e.WCControlPlaneLBIPs)
 	default:
 		panic(fmt.Sprintf("invalid cluster type: %s", e.ClusterType))
 	}
 
-	// TODO: Remove when machine states are no longer maps in output
-	sort.Slice(machines, func(i, j int) bool {
-		return machines[i].Name < machines[j].Name
-	})
-
-	return
+	return machines
 }
 
 func (e *terraformOutput) Machine(
-	nodeType api.NodeType,
 	name string,
 ) (machine api.MachineState, err error) {
-	for _, machine = range e.Machines() {
-		if machine.NodeType == nodeType && machine.Name == name {
-			return
+	var ok bool
+	if machine, ok = e.Machines()[name]; !ok {
+		err = &api.MachineStateNotFoundError{
+			Name: name,
 		}
-	}
-
-	err = &api.MachineStateNotFoundError{
-		NodeType: nodeType,
-		Name:     name,
 	}
 	return
 }

@@ -15,88 +15,70 @@ const (
 
 // Default TODO
 func Default(clusterType api.ClusterType, clusterName string) *Cluster {
-	return &Cluster{
-		config: openstack.OpenstackConfig{
-			BaseConfig: *api.DefaultBaseConfig(
-				clusterType,
-				api.Safespring,
-				clusterName,
-			),
-
-			IdentityAPIVersion: "3",
-			AuthURL:            "https://keystone.api.cloud.ipnett.se/v3",
-			RegionName:         "se-east-1",
-
-			ProjectID:         "changeme",
-			ProjectDomainName: "changeme",
-			UserDomainName:    "changeme",
-
-			S3RegionAddress: "s3.sto1.safedc.net",
-		},
-		secret: openstack.OpenstackSecret{
-			BaseSecret: api.BaseSecret{
-				S3AccessKey: "changeme",
-				S3SecretKey: "changeme",
-			},
-			AWSAccessKeyID:     "changeme",
-			AWSSecretAccessKey: "changeme",
-
-			Username: "changeme",
-			Password: "changeme",
-		},
-		tfvars: SafespringTFVars{
-			PublicIngressCIDRWhitelist: []string{},
-			APIServerWhitelist:         []string{},
-			NodeportWhitelist:          []string{},
-
-			ExternalNetworkID:   "71b10496-2617-47ae-abbc-36239f0863bb",
-			ExternalNetworkName: "public-v4",
-
-			AWSDNSZoneID:  "changeme",
-			AWSDNSRoleARN: "changeme",
-		},
+	cluster := &Cluster{
+		openstack.Default(clusterType, api.Safespring, clusterName),
 	}
+
+	cluster.Cluster.Config.IdentityAPIVersion = "3"
+	cluster.Cluster.Config.AuthURL = "https://keystone.api.cloud.ipnett.se/v3"
+	cluster.Cluster.Config.RegionName = "se-east-1"
+	cluster.Cluster.Config.S3RegionAddress = "s3.sto1.safedc.net"
+
+	cluster.Cluster.TFVars.ExternalNetworkID = "71b10496-2617-47ae-abbc-36239f0863bb"
+	cluster.Cluster.TFVars.ExternalNetworkName = "public-v4"
+
+	return cluster
 }
 
 // Development TODO
 func Development(clusterType api.ClusterType, clusterName string) api.Cluster {
 	cluster := Default(clusterType, clusterName)
 
-	cluster.tfvars.MasterNamesSC = []string{"master-0"}
-	cluster.tfvars.MasterNameSizeMapSC = map[string]string{
-		// TODO: could go with smaller flavor here if made available
-		"master-0": "dc67a9eb-0685-4bb6-9383-a01c717e02e8", // lb.large.1d
+	cluster.Cluster.TFVars.MachinesSC = map[string]api.Machine{
+		"master-0": {
+			NodeType: api.Master,
+			// TODO: could go with smaller flavor here if made available
+			// lb.large.1d
+			Size: "dc67a9eb-0685-4bb6-9383-a01c717e02e8",
+		},
+		"worker-0": {
+			NodeType: api.Worker,
+			// lb.xlarge.1d
+			Size: "ea0dbe3b-f93a-47e0-84e4-b09ec5873bdf",
+		},
+		"worker-1": {
+			NodeType: api.Worker,
+			// lb.large.1d
+			Size: "dc67a9eb-0685-4bb6-9383-a01c717e02e8",
+		},
+		"loadbalancer-0": {
+			NodeType: api.LoadBalancer,
+			// lb.tiny
+			Size: "51d480b8-2517-4ba8-bfe0-c649ac93eb61",
+		},
 	}
 
-	cluster.tfvars.WorkerNamesSC = []string{"worker-0", "worker-1"}
-	cluster.tfvars.WorkerNameSizeMapSC = map[string]string{
-		"worker-0": "ea0dbe3b-f93a-47e0-84e4-b09ec5873bdf", // lb.xlarge.1d
-		"worker-1": "dc67a9eb-0685-4bb6-9383-a01c717e02e8", // lb.large.1d
+	cluster.Cluster.TFVars.MachinesWC = map[string]api.Machine{
+		"master-0": {
+			NodeType: api.Master,
+			// TODO: could go with smaller flavor here if made available
+			// lb.large.1d
+			Size: "dc67a9eb-0685-4bb6-9383-a01c717e02e8",
+		},
+		"worker-0": {
+			NodeType: api.Worker,
+			// lb.large.1d
+			Size: "dc67a9eb-0685-4bb6-9383-a01c717e02e8",
+		},
+		"loadbalancer-0": {
+			NodeType: api.LoadBalancer,
+			// lb.tiny
+			Size: "51d480b8-2517-4ba8-bfe0-c649ac93eb61",
+		},
 	}
 
-	cluster.tfvars.MasterNamesWC = []string{"master-0"}
-	cluster.tfvars.MasterNameSizeMapWC = map[string]string{
-		// TODO: could go with smaller flavor here if made available
-		"master-0": "dc67a9eb-0685-4bb6-9383-a01c717e02e8", // lb.large.1d
-	}
-
-	cluster.tfvars.WorkerNamesWC = []string{"worker-0"}
-	cluster.tfvars.WorkerNameSizeMapWC = map[string]string{
-		"worker-0": "dc67a9eb-0685-4bb6-9383-a01c717e02e8", // lb.large.1d
-	}
-
-	cluster.tfvars.LoadBalancerNamesSC = []string{"loadbalancer-0"}
-	cluster.tfvars.LoadBalancerNameFlavorMapSC = map[string]string{
-		"loadbalancer-0": "51d480b8-2517-4ba8-bfe0-c649ac93eb61", // lb.tiny
-	}
-
-	cluster.tfvars.LoadBalancerNamesWC = []string{"loadbalancer-0"}
-	cluster.tfvars.LoadBalancerNameFlavorMapWC = map[string]string{
-		"loadbalancer-0": "51d480b8-2517-4ba8-bfe0-c649ac93eb61", // lb.tiny
-	}
-
-	cluster.tfvars.MasterAntiAffinityPolicySC = "anti-affinity"
-	cluster.tfvars.MasterAntiAffinityPolicyWC = "anti-affinity"
+	cluster.Cluster.TFVars.MasterAntiAffinityPolicySC = "anti-affinity"
+	cluster.Cluster.TFVars.MasterAntiAffinityPolicyWC = "anti-affinity"
 
 	return cluster
 }

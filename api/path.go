@@ -69,7 +69,7 @@ var relativeConfigPaths = ConfigPath{
 	ConfigFile:          {"config.sh", "dotenv"},
 	SecretsFile:         {"secrets.env", "dotenv"},
 	TFBackendConfigFile: {"backend_config.hcl", "hclv2"},
-	TFVarsFile:          {"config.tfvars", "hclv2"},
+	TFVarsFile:          {"tfvars.json", "json"},
 	TFDataDir:           {".state/.terraform", ""},
 	TFEDataDir:          {".state/.terraform-tfe", ""},
 	TFEStateFile:        {".state/terraform-tfe.tfstate", ""},

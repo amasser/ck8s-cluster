@@ -9,7 +9,7 @@ type tfOutputStringValue struct {
 }
 
 type terraformOutput struct {
-	openstack.TerraformOutput `mapstructure:",squash"`
+	openstack.TerraformOutput
 
 	SCLBSubnetID tfOutputStringValue `json:"sc_lb_subnet_id"`
 	WCLBSubnetID tfOutputStringValue `json:"wc_lb_subnet_id"`

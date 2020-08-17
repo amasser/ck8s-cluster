@@ -2,6 +2,7 @@ package client
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -298,6 +299,19 @@ func (c *ConfigHandler) secretsViper() *viper.Viper {
 	return v
 }
 
+func (c *ConfigHandler) tfvarsViper() *viper.Viper {
+	tfVarsPath := c.configPath[api.TFVarsFile]
+
+	path, name, ext := splitPath(tfVarsPath.Path)
+
+	v := viper.New()
+	v.SetConfigName(name + "." + ext)
+	v.SetConfigType(tfVarsPath.Format)
+	v.AddConfigPath(path)
+
+	return v
+}
+
 func (c *ConfigHandler) readConfig() (api.Cluster, error) {
 	v := c.configViper()
 
@@ -348,14 +362,15 @@ func (c *ConfigHandler) readSecrets(cluster api.Cluster) error {
 }
 
 func (c *ConfigHandler) readTFVars(cluster api.Cluster) error {
-	tfvarsPath := c.configPath[api.TFVarsFile]
+	c.logger.Debug("config_handler_tfvars_read")
 
-	tfvarsData, err := ioutil.ReadFile(tfvarsPath.Path)
-	if err != nil {
-		return fmt.Errorf("error reading tfvars: %w", err)
+	v := c.tfvarsViper()
+
+	if err := v.ReadInConfig(); err != nil {
+		return err
 	}
 
-	if err := hclDecode(tfvarsData, cluster.TFVars()); err != nil {
+	if err := v.Unmarshal(cluster.TFVars()); err != nil {
 		return fmt.Errorf("error decoding tfvars: %w", err)
 	}
 
@@ -363,11 +378,25 @@ func (c *ConfigHandler) readTFVars(cluster api.Cluster) error {
 }
 
 func (c *ConfigHandler) writeTFVars(cluster api.Cluster) error {
-	return ioutil.WriteFile(
-		c.configPath[api.TFVarsFile].Path,
-		hclEncode(cluster.TFVars()),
-		0644,
-	)
+	c.logger.Debug("config_handler_tfvars_write")
+
+	// TODO: Could consider cutting Viper out of the equation here and simply
+	//		 marshal and write ourselves instead of having to the marshal, read
+	// 		 and write dance.
+
+	v := c.tfvarsViper()
+
+	data, err := json.Marshal(cluster.TFVars())
+	if err != nil {
+		return fmt.Errorf("error encoding tfvars: %s", err)
+	}
+
+	if err := v.ReadConfig(bytes.NewBuffer(data)); err != nil {
+		return err
+	}
+
+	// https://github.com/spf13/viper/issues/430
+	return v.WriteConfigAs(c.configPath[api.TFVarsFile].Path)
 }
 
 // WriteInfraJSON TODO Remove this when apps isn't dependent on it (maybe using terraform instead)

@@ -8,11 +8,11 @@ import (
 	"github.com/elastisys/ck8s/api"
 )
 
-const ansibleInventoryTemplate = `{{ range MachinesByNodeType (NodeType "master") -}}
-{{ $.Cluster.Name }}-{{ .Name }} ansible_host={{ .PublicIP }} private_ip={{ .PrivateIP }}
+const ansibleInventoryTemplate = `{{ range $Name, $Machine := MachinesByNodeType "master" -}}
+{{ $.Cluster.Name }}-{{ $Name }} ansible_host={{ $Machine.PublicIP }} private_ip={{ $Machine.PrivateIP }}
 {{ end }}
-{{ range MachinesByNodeType (NodeType "worker") -}}
-{{ $.Cluster.Name }}-{{ .Name }} ansible_host={{ .PublicIP }} private_ip={{ .PrivateIP }}
+{{ range $Name, $Machine := MachinesByNodeType "worker" -}}
+{{ $.Cluster.Name }}-{{ $Name }} ansible_host={{ $Machine.PublicIP }} private_ip={{ $Machine.PrivateIP }}
 {{ end }}
 
 [all:vars]
@@ -52,19 +52,19 @@ calico_mtu='{{ .State.CalicoMTU }}'
 kubeadm_init_extra_args='{{ .State.KubeadmInitExtraArgs }}'
 
 [masters]
-{{ range MachinesByNodeType (NodeType "master") -}}
-{{ $.Cluster.Name }}-{{ .Name }}
+{{ range $Name, $_ := MachinesByNodeType "master" -}}
+{{ $.Cluster.Name }}-{{ $Name }}
 {{ end }}
 
 [workers]
-{{ range MachinesByNodeType (NodeType "worker") -}}
-{{ $.Cluster.Name }}-{{ .Name }}
+{{ range $Name, $_ := MachinesByNodeType "worker" -}}
+{{ $.Cluster.Name }}-{{ $Name }}
 {{ end }}
 
-{{ if MachinesByNodeType (NodeType "loadbalancer") -}}
+{{ if MachinesByNodeType "loadbalancer" -}}
 [loadbalancers]
-{{ range MachinesByNodeType (NodeType "loadbalancer") -}}
-{{ $.Cluster.Name }}-{{ .Name }} ansible_host={{ .PublicIP }} private_ip={{ .PrivateIP }}
+{{ range $Name, $Machine := MachinesByNodeType "loadbalancer" -}}
+{{ $.Cluster.Name }}-{{ $Name }} ansible_host={{ $Machine.PublicIP }} private_ip={{ $Machine.PrivateIP }}
 {{ end }}
 {{ end }}
 {{ if .State.InternalLoadBalancerAnsibleGroups -}}
@@ -84,13 +84,14 @@ func renderAnsibleInventory(
 	state api.ClusterState,
 	w io.Writer,
 ) error {
-	machinesByNodeType := func(nt api.NodeType) (machines []api.MachineState) {
-		for _, machine := range state.Machines() {
+	machinesByNodeType := func(nt api.NodeType) map[string]api.MachineState {
+		machines := map[string]api.MachineState{}
+		for name, machine := range state.Machines() {
 			if machine.NodeType == nt {
-				machines = append(machines, machine)
+				machines[name] = machine
 			}
 		}
-		return
+		return machines
 	}
 
 	// TODO: We really should try to get away from arbitrary JSON in the
@@ -108,7 +109,6 @@ func renderAnsibleInventory(
 	}
 
 	tmpl, err := template.New("inventory").Funcs(template.FuncMap{
-		"NodeType":           api.NodeTypeFromString,
 		"MachinesByNodeType": machinesByNodeType,
 	}).Parse(ansibleInventoryTemplate)
 	if err != nil {

@@ -10,13 +10,13 @@ import (
 
 func init() {
 	rootCmd.AddCommand(&cobra.Command{
-		Use:   "clone NODE_TYPE NODE_NAME",
+		Use:   "clone NODE_NAME",
 		Short: "Clone a Kubernetes node",
 		Long: `This command will clone a Kubernetes node by:
 1. Cloning the machine in the tfvars configuration and running terraform
    apply.
 2. Joining the new node to the Kubernetes cluster.`,
-		Args: ExactArgs(2),
+		Args: ExactArgs(1),
 		RunE: withClusterClient(cloneNode),
 	})
 
@@ -29,15 +29,15 @@ func init() {
 	})
 
 	rootCmd.AddCommand(&cobra.Command{
-		Use:   "reset NODE_TYPE NODE_NAME",
+		Use:   "reset NODE_NAME",
 		Short: "Runs kubeadm reset on a machine",
 		Long:  `This command will remove any trace of Kubernetes from a machine.`,
-		Args:  ExactArgs(2),
+		Args:  ExactArgs(1),
 		RunE:  withClusterClient(resetNode),
 	})
 
 	rootCmd.AddCommand(&cobra.Command{
-		Use:   "remove NODE_TYPE NODE_NAME",
+		Use:   "remove NODE_NAME",
 		Short: "Remove a Kubernetes node",
 		Long: `This command will remove a node from the Kubernetes cluster and destroy the
 machine by:
@@ -45,12 +45,12 @@ machine by:
 2. Running kubeadm reset on old machine.
 3. Removing the old machine from the Terraform configuration and running
    terraform apply.`,
-		Args: ExactArgs(2),
+		Args: ExactArgs(1),
 		RunE: withClusterClient(removeNode),
 	})
 
 	rootCmd.AddCommand(&cobra.Command{
-		Use:   "replace NODE_TYPE NODE_NAME",
+		Use:   "replace NODE_NAME",
 		Short: "Replace a Kubernetes node",
 		Long: `This command replaces a Kubernetes cluster node by:
 1. Cloning the machine in the tfvars configuration and running terraform
@@ -63,7 +63,7 @@ machine by:
 
 This useful when, for example, the Kubernetes cluster needs to be updated
 gracefully by performing a rolling upgrade.`,
-		Args: ExactArgs(2),
+		Args: ExactArgs(1),
 		RunE: withClusterClient(replaceNode),
 	})
 }
@@ -73,14 +73,9 @@ func resetNode(
 	cmd *cobra.Command,
 	args []string,
 ) error {
-	nodeType, err := parseNodeTypeFlag(args[0])
-	if err != nil {
-		return err
-	}
+	name := args[0]
 
-	name := args[1]
-
-	if err := clusterClient.ResetNode(nodeType, name); err != nil {
+	if err := clusterClient.ResetNode(name); err != nil {
 		return fmt.Errorf("error draining node: %s", err)
 	}
 	return nil
@@ -91,14 +86,9 @@ func cloneNode(
 	cmd *cobra.Command,
 	args []string,
 ) error {
-	nodeType, err := parseNodeTypeFlag(args[0])
-	if err != nil {
-		return err
-	}
+	name := args[0]
 
-	name := args[1]
-
-	if err := clusterClient.CloneNode(nodeType, name); err != nil {
+	if err := clusterClient.CloneNode(name); err != nil {
 		return fmt.Errorf("error cloning node: %s", err)
 	}
 	return nil
@@ -122,14 +112,9 @@ func replaceNode(
 	cmd *cobra.Command,
 	args []string,
 ) error {
-	nodeType, err := parseNodeTypeFlag(args[0])
-	if err != nil {
-		return err
-	}
+	name := args[0]
 
-	name := args[1]
-
-	if err := clusterClient.ReplaceNode(nodeType, name); err != nil {
+	if err := clusterClient.ReplaceNode(name); err != nil {
 		return fmt.Errorf("error replacing node: %s", err)
 	}
 	return nil
@@ -140,14 +125,9 @@ func removeNode(
 	cmd *cobra.Command,
 	args []string,
 ) error {
-	nodeType, err := parseNodeTypeFlag(args[0])
-	if err != nil {
-		return err
-	}
+	name := args[0]
 
-	name := args[1]
-
-	if err := clusterClient.RemoveNode(nodeType, name); err != nil {
+	if err := clusterClient.RemoveNode(name); err != nil {
 		return fmt.Errorf("error removing node: %s", err)
 	}
 	return nil

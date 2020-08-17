@@ -9,9 +9,7 @@ import (
 
 // Cluster TODO
 type Cluster struct {
-	config openstack.OpenstackConfig
-	secret openstack.OpenstackSecret
-	tfvars openstack.OpenstackTFVars
+	*openstack.Cluster
 }
 
 type cloudProviderVars struct {
@@ -24,17 +22,17 @@ type cloudProviderVars struct {
 
 // Config TODO
 func (e *Cluster) Config() interface{} {
-	return &e.config
+	return &e.Cluster.Config
 }
 
 // Secret TODO
 func (e *Cluster) Secret() interface{} {
-	return &e.secret
+	return &e.Cluster.Secret
 }
 
 // TFVars TODO
 func (e *Cluster) TFVars() interface{} {
-	return &e.tfvars
+	return &e.Cluster.TFVars
 }
 
 // State TODO
@@ -43,16 +41,12 @@ func (e *Cluster) State(
 ) (api.ClusterState, error) {
 	tfOutput := terraformOutput{
 		TerraformOutput: openstack.StateHelper(
-			e.config.ClusterType,
+			e.Cluster.Config.ClusterType,
 			e.Name(),
 		),
 	}
 
 	return &tfOutput, loadState(&tfOutput)
-}
-
-func (e *Cluster) CloudProvider() api.CloudProviderType {
-	return e.config.CloudProviderType
 }
 
 func (e *Cluster) CloudProviderVars(state api.ClusterState) interface{} {
@@ -63,11 +57,11 @@ func (e *Cluster) CloudProviderVars(state api.ClusterState) interface{} {
 
 	cpv := &cloudProviderVars{
 		LBEnabled:           true,
-		LBExternalNetworkID: e.tfvars.ExternalNetworkID,
+		LBExternalNetworkID: e.Cluster.TFVars.ExternalNetworkID,
 		UseOctavia:          true,
 	}
 
-	switch e.config.ClusterType {
+	switch e.Cluster.Config.ClusterType {
 	case api.ServiceCluster:
 		cpv.LBSubnetID = cityCloudState.SCLBSubnetID.Value
 		cpv.SecurityGroupID = cityCloudState.SCSecurityGroupID.Value
@@ -75,41 +69,11 @@ func (e *Cluster) CloudProviderVars(state api.ClusterState) interface{} {
 		cpv.LBSubnetID = cityCloudState.WCLBSubnetID.Value
 		cpv.SecurityGroupID = cityCloudState.WCSecurityGroupID.Value
 	default:
-		panic(fmt.Sprintf("invalid cluster type: %s", e.config.ClusterType))
+		panic(fmt.Sprintf(
+			"invalid cluster type: %s",
+			e.Cluster.Config.ClusterType,
+		))
 	}
 
 	return cpv
-}
-
-func (e *Cluster) Name() string {
-	switch e.config.ClusterType {
-	case api.ServiceCluster:
-		if e.tfvars.PrefixSC != "" {
-			return e.tfvars.PrefixSC
-		}
-	case api.WorkloadCluster:
-		if e.tfvars.PrefixWC != "" {
-			return e.tfvars.PrefixWC
-		}
-	default:
-		panic(fmt.Sprintf("invalid cluster type: %s", e.config.ClusterType))
-	}
-
-	return api.NameHelper(&e.config.BaseConfig)
-}
-
-func (e *Cluster) S3Buckets() map[string]string {
-	return api.S3BucketsHelper(&e.config.BaseConfig)
-}
-
-func (e *Cluster) TerraformWorkspace() string {
-	return e.config.EnvironmentName
-}
-
-func (e *Cluster) TerraformEnv(sshPublicKey string) map[string]string {
-	return openstack.TerraformEnvHelper(e.config, e.secret, sshPublicKey)
-}
-
-func (e *Cluster) AnsibleEnv() map[string]string {
-	return openstack.AnsibleEnvHelper(e.config, e.secret)
 }

@@ -1,7 +1,5 @@
 package api
 
-import "fmt"
-
 type CloudProviderType string
 
 const (
@@ -31,7 +29,7 @@ type Cluster interface {
 	Secret() interface{}
 	TFVars() interface{}
 
-	Machines() []Machine
+	Machines() map[string]Machine
 
 	// TODO: We should be able to combine these if we only handled a single
 	// 		 cluster and deprecated the prefixes in tfvars.
@@ -41,9 +39,9 @@ type Cluster interface {
 	CloudProvider() CloudProviderType
 	CloudProviderVars(ClusterState) interface{}
 
-	CloneMachine(NodeType, string) (string, error)
+	CloneMachine(string) (string, error)
 
-	RemoveMachine(NodeType, string) error
+	RemoveMachine(string) error
 
 	// TODO: We should try to get rid of this.
 	TerraformEnv(sshPublicKey string) map[string]string
@@ -56,8 +54,8 @@ type Cluster interface {
 }
 
 type Machine struct {
-	NodeType NodeType
-	Name     string
+	NodeType NodeType `json:"node_type" mapstructure:"node_type" validate:"required"`
+	Size     string   `json:"size" mapstructure:"size" validate:"required"`
 }
 
 type ClusterState interface {
@@ -66,9 +64,9 @@ type ClusterState interface {
 
 	BaseDomain() string
 
-	Machines() []MachineState
+	Machines() map[string]MachineState
 
-	Machine(NodeType, string) (MachineState, error)
+	Machine(string) (MachineState, error)
 }
 
 type MachineState struct {
@@ -96,39 +94,13 @@ func (c ClusterType) String() string {
 	}
 }
 
-type NodeType int
+type NodeType string
 
 const (
-	Master NodeType = iota + 1
-	Worker
-	LoadBalancer
+	Master       NodeType = "master"
+	Worker       NodeType = "worker"
+	LoadBalancer NodeType = "loadbalancer"
 )
-
-func (n NodeType) String() string {
-	switch n {
-	case Master:
-		return "master"
-	case Worker:
-		return "worker"
-	case LoadBalancer:
-		return "loadbalancer"
-	}
-
-	panic(fmt.Sprintf("missing string implementation for node type %d", n))
-}
-
-func NodeTypeFromString(s string) NodeType {
-	switch s {
-	case Master.String():
-		return Master
-	case Worker.String():
-		return Worker
-	case LoadBalancer.String():
-		return LoadBalancer
-	}
-	// TODO: return error?
-	panic("unknown node type")
-}
 
 type TerraformBackendConfig struct {
 	Hostname     string `hcl:"hostname"`

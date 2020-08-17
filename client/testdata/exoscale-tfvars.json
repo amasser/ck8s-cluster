@@ -1,0 +1,37 @@
+{
+  "api_server_whitelist": ["1.2.3.4/32", "4.3.2.1/32"],
+  "machines_sc": {
+    "master-0": {
+      "es_local_storage_capacity": 0,
+      "node_type": "master",
+      "size": "Small"
+    },
+    "worker-0": {
+      "es_local_storage_capacity": 26,
+      "node_type": "worker",
+      "size": "Extra-large"
+    },
+    "worker-1": {
+      "es_local_storage_capacity": 26,
+      "node_type": "worker",
+      "size": "Large"
+    }
+  },
+  "machines_wc": {
+    "master-0": {
+      "es_local_storage_capacity": 0,
+      "node_type": "master",
+      "size": "Small"
+    },
+    "worker-0": {
+      "es_local_storage_capacity": 0,
+      "node_type": "worker",
+      "size": "Large"
+    }
+  },
+  "nfs_size": "Small",
+  "nodeport_whitelist": ["1.2.3.4/32", "4.3.2.1/32"],
+  "prefix_sc": "",
+  "prefix_wc": "",
+  "public_ingress_cidr_whitelist": ["1.2.3.4/32", "4.3.2.1/32"]
+}

@@ -46,12 +46,20 @@ resource "exoscale_network" "private_network" {
   netmask = cidrnetmask(var.private_network_cidr)
 }
 
-resource "exoscale_compute" "master" {
-  for_each = toset(var.master_names)
+# TODO: We should probably be able to combine all compute resources into one
+#       but it will be breaking existing resources, so let's keep them as is
+#       for now.
 
-  display_name    = "${var.prefix}-${each.value}"
+resource "exoscale_compute" "master" {
+  for_each = {
+    for name, machine in var.machines :
+    name => machine
+    if machine.node_type == "master"
+  }
+
+  display_name    = "${var.prefix}-${each.key}"
   template_id     = data.exoscale_compute_template.os_image.id
-  size            = var.master_name_size_map[each.value]
+  size            = each.value.size
   disk_size       = 50
   key_pair        = exoscale_ssh_keypair.ssh_key.name
   state           = "Running"
@@ -62,11 +70,15 @@ resource "exoscale_compute" "master" {
 }
 
 resource "exoscale_compute" "worker" {
-  for_each = toset(var.worker_names)
+  for_each = {
+    for name, machine in var.machines :
+    name => machine
+    if machine.node_type == "worker"
+  }
 
-  display_name    = "${var.prefix}-${each.value}"
+  display_name    = "${var.prefix}-${each.key}"
   template_id     = data.exoscale_compute_template.os_image.id
-  size            = var.worker_name_size_map[each.value]
+  size            = each.value.size
   disk_size       = 50
   key_pair        = exoscale_ssh_keypair.ssh_key.name
   state           = "Running"
@@ -77,7 +89,7 @@ resource "exoscale_compute" "worker" {
     "${path.module}/templates/worker-cloud-init.tmpl",
     {
       eip_ip_address            = exoscale_ipaddress.ingress_controller_lb.ip_address
-      es_local_storage_capacity = var.es_local_storage_capacity_map[each.value]
+      es_local_storage_capacity = each.value.es_local_storage_capacity
     }
   )
 }
@@ -200,9 +212,9 @@ resource "exoscale_ipaddress" "ingress_controller_lb" {
 }
 
 resource "exoscale_secondary_ipaddress" "ingress_controller_lb" {
-  for_each = toset(var.worker_names)
+  for_each = exoscale_compute.worker
 
-  compute_id = exoscale_compute.worker[each.value].id
+  compute_id = each.value.id
   ip_address = exoscale_ipaddress.ingress_controller_lb.ip_address
 }
 
@@ -217,9 +229,9 @@ resource "exoscale_ipaddress" "control_plane_lb" {
 }
 
 resource "exoscale_secondary_ipaddress" "control_plane_lb" {
-  for_each = toset(var.master_names)
+  for_each = exoscale_compute.master
 
-  compute_id = exoscale_compute.master[each.value].id
+  compute_id = each.value.id
   ip_address = exoscale_ipaddress.control_plane_lb.ip_address
 }
 

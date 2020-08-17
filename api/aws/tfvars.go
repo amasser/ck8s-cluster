@@ -10,95 +10,47 @@ import (
 
 // AWSTFVars TODO
 type AWSTFVars struct {
-	Region string `hcl:"region"`
+	Region string `json:"region" mapstructure:"region"`
 
-	PrefixSC string `hcl:"prefix_sc"`
-	PrefixWC string `hcl:"prefix_wc"`
+	PrefixSC string `json:"prefix_sc" mapstructure:"prefix_sc"`
+	PrefixWC string `json:"prefix_wc" mapstructure:"prefix_wc"`
 
-	MasterNodesSC map[string]string `hcl:"master_nodes_sc" validate:"required,min=1"`
-	WorkerNodesSC map[string]string `hcl:"worker_nodes_sc"`
-	MasterNodesWC map[string]string `hcl:"master_nodes_wc" validate:"required,min=1"`
-	WorkerNodesWC map[string]string `hcl:"worker_nodes_wc" validate:"required"`
+	MachinesSC map[string]api.Machine `json:"machines_sc" mapstructure:"machines_sc" validate:"required,min=1"`
+	MachinesWC map[string]api.Machine `json:"machines_wc" mapstructure:"machines_wc" validate:"required,min=1"`
 
-	PublicIngressCIDRWhitelist []string `hcl:"public_ingress_cidr_whitelist" validate:"required"`
-
-	APIServerWhitelist []string `hcl:"api_server_whitelist" validate:"required"`
-	NodeportWhitelist  []string `hcl:"nodeport_whitelist" validate:"required"`
+	PublicIngressCIDRWhitelist []string `json:"public_ingress_cidr_whitelist" mapstructure:"public_ingress_cidr_whitelist" validate:"required"`
+	APIServerWhitelist         []string `json:"api_server_whitelist" mapstructure:"api_server_whitelist" validate:"required"`
+	NodeportWhitelist          []string `json:"nodeport_whitelist" mapstructure:"nodeport_whitelist" validate:"required"`
 }
 
-func (e *Cluster) Machines() (machines []api.Machine) {
-	for _, nodeType := range []api.NodeType{
-		api.Master,
-		api.Worker,
-	} {
-		part := e.lookupMachinePart(e.config.ClusterType, nodeType)
-		for name := range part.nameSizeMap {
-			machines = append(machines, api.Machine{
-				Name:     name,
-				NodeType: nodeType,
-			})
-		}
-	}
-	return
-}
-
-// CloneMachine TODO
-func (e *Cluster) CloneMachine(
-	nodeType api.NodeType,
-	name string,
-) (string, error) {
-	part := e.lookupMachinePart(e.config.ClusterType, nodeType)
+func (e *Cluster) CloneMachine(name string) (string, error) {
+	machines := e.Machines()
 
 	cloneName := uuid.New().String()
 
-	size, ok := part.nameSizeMap[name]
+	machine, ok := machines[name]
 	if !ok {
 		return "", fmt.Errorf("machine not found: %s", name)
 	}
 
-	part.nameSizeMap[cloneName] = size
+	machines[cloneName] = machine
 
 	return cloneName, nil
 }
 
-// RemoveMachine TODO
-func (e *Cluster) RemoveMachine(
-	nodeType api.NodeType,
-	name string,
-) error {
-	// TODO: When we no longer need ClusterType these methods could be
-	//		 implemented directly on the TFVars struct.
-	part := e.lookupMachinePart(e.config.ClusterType, nodeType)
+func (e *Cluster) Machines() (machines map[string]api.Machine) {
+	switch e.config.ClusterType {
+	case api.ServiceCluster:
+		return e.tfvars.MachinesSC
+	case api.WorkloadCluster:
+		return e.tfvars.MachinesWC
+	}
 
-	delete(part.nameSizeMap, name)
+	panic("invalid cluster type")
+}
 
+func (e *Cluster) RemoveMachine(name string) error {
+	machines := e.Machines()
+	delete(machines, name)
 	return nil
-}
-
-type tfvarsMachinePart struct {
-	nameSizeMap map[string]string
-}
-
-func (e *Cluster) lookupMachinePart(
-	cluster api.ClusterType,
-	nodeType api.NodeType,
-) tfvarsMachinePart {
-	return map[api.ClusterType]map[api.NodeType]tfvarsMachinePart{
-		api.ServiceCluster: {
-			api.Master: {
-				e.tfvars.MasterNodesSC,
-			},
-			api.Worker: {
-				e.tfvars.WorkerNodesSC,
-			},
-		},
-		api.WorkloadCluster: {
-			api.Master: {
-				e.tfvars.MasterNodesWC,
-			},
-			api.Worker: {
-				e.tfvars.WorkerNodesWC,
-			},
-		},
-	}[cluster][nodeType]
 }

@@ -81,10 +81,35 @@ func TestFlavors(t *testing.T) {
 				APIServerWhitelist:         []string{},
 				NodeportWhitelist:          []string{},
 
-				MasterNodesSC: map[string]string{"master-0": "t3.small"},
-				WorkerNodesSC: map[string]string{"worker-0": "t3.xlarge", "worker-1": "t3.large"},
-				MasterNodesWC: map[string]string{"master-0": "t3.small"},
-				WorkerNodesWC: map[string]string{"worker-0": "t3.large", "worker-1": "t3.large"},
+				MachinesSC: map[string]api.Machine{
+					"master-0": {
+						NodeType: api.Master,
+						Size:     "t3.small",
+					},
+					"worker-0": {
+						NodeType: api.Worker,
+						Size:     "t3.xlarge",
+					},
+					"worker-1": {
+						NodeType: api.Worker,
+						Size:     "t3.large",
+					},
+				},
+
+				MachinesWC: map[string]api.Machine{
+					"master-0": {
+						NodeType: api.Master,
+						Size:     "t3.small",
+					},
+					"worker-0": {
+						NodeType: api.Worker,
+						Size:     "t3.large",
+					},
+					"worker-1": {
+						NodeType: api.Worker,
+						Size:     "t3.large",
+					},
+				},
 			},
 		},
 		got: Development(clusterType, clusterName),

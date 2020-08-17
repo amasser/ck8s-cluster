@@ -52,16 +52,21 @@ func init() {
 	rootCmd.AddCommand(statusCmd)
 }
 
-func printMachineStatus(name string, machine api.Machine, success bool) {
+func printMachineStatus(
+	statusName string,
+	machineName string,
+	machine api.Machine,
+	success bool,
+) {
 	status := Green.Fmt("✔️")
 	if !success {
 		status = Red.Fmt("❌")
 	}
 	fmt.Println(fmt.Sprintf(
 		"%s %s %s %s",
-		name,
-		machine.NodeType.String(),
-		machine.Name,
+		statusName,
+		machine.NodeType,
+		machineName,
 		status,
 	))
 }
@@ -84,25 +89,6 @@ func status(
 	return errChain
 }
 
-func machineExists(
-	machine api.Machine,
-	currentMachines []api.MachineState,
-) (api.MachineState, error) {
-	var errChain error
-
-	for _, machineState := range currentMachines {
-		if machine == machineState.Machine {
-			return machineState, nil
-		}
-	}
-	errChain = multierror.Append(errChain, fmt.Errorf(
-		"machine does not exists in state: %s",
-		machine,
-	))
-
-	return api.MachineState{}, errChain
-}
-
 func statusSSH(
 	clusterClient *client.ClusterClient,
 	cmd *cobra.Command,
@@ -117,26 +103,29 @@ func statusSSH(
 
 	timeout := viper.GetDuration(sshTimeoutFlag)
 
-	for _, machine := range clusterClient.DesiredMachines() {
-		machineState, err := machineExists(machine, currentMachines)
-		if err != nil {
-			printMachineStatus("SSH", machine, false)
-			errChain = multierror.Append(errChain, err)
+	for name, machine := range clusterClient.DesiredMachines() {
+		machineState, ok := currentMachines[name]
+		if !ok {
+			printMachineStatus("SSH", name, machine, false)
+			errChain = multierror.Append(errChain, fmt.Errorf(
+				"machine does not exists in state: %s",
+				name,
+			))
 			continue
 		}
 
 		machineClient := clusterClient.MachineClient(machineState)
 
 		if err := machineClient.WaitForSSH(timeout); err != nil {
-			printMachineStatus("SSH", machine, false)
+			printMachineStatus("SSH", name, machine, false)
 			errChain = multierror.Append(fmt.Errorf(
 				"ssh status failed for %s: %w",
-				machineState.Name, err,
+				name, err,
 			))
 			continue
 		}
 
-		printMachineStatus("SSH", machine, true)
+		printMachineStatus("SSH", name, machine, true)
 	}
 
 	return errChain
@@ -149,25 +138,25 @@ func statusNode(
 ) error {
 	var errChain error
 
-	for _, machine := range clusterClient.DesiredMachines() {
+	for name, machine := range clusterClient.DesiredMachines() {
 		if machine.NodeType == api.Worker || machine.NodeType == api.Master {
-			exists, err := clusterClient.NodeExists(machine.Name)
+			exists, err := clusterClient.NodeExists(name)
 			if err != nil {
-				printMachineStatus("K8S node", machine, false)
+				printMachineStatus("K8S node", name, machine, false)
 				errChain = multierror.Append(fmt.Errorf(
 					"node status failed for %s: %w",
-					machine.Name, err,
+					name, err,
 				))
 				continue
 			} else if !exists {
-				printMachineStatus("K8S node", machine, false)
+				printMachineStatus("K8S node", name, machine, false)
 				errChain = multierror.Append(fmt.Errorf(
 					"node does not exist in Kubernetes: %s",
-					machine,
+					name,
 				))
 				continue
 			}
-			printMachineStatus("K8S node", machine, true)
+			printMachineStatus("K8S node", name, machine, true)
 		}
 	}
 
