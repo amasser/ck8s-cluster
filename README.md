@@ -29,6 +29,7 @@ CityCloud.
 - [sops](https://github.com/mozilla/sops) (tested with 3.5.0)
 - [s3cmd](https://s3tools.org/s3cmd) (tested with 2.0.2)
 - [ansible](https://www.ansible.com) (tested with 2.5.1)
+- [go](https://golang.org) (tested with 1.13.8)
 
 Note that you will need a [BaseOS](https://github.com/elastisys/ck8s-base-vm)
 VM template available at your cloud provider of choice!
