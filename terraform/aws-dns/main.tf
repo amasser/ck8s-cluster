@@ -1,6 +1,6 @@
 provider "aws" {
-  version                 = "~> 2.50"
-  region                  = var.region
+  version    = "~> 2.50"
+  region     = var.region
   access_key = var.dns_access_key
   secret_key = var.dns_secret_key
   assume_role {

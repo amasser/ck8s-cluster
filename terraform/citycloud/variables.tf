@@ -58,7 +58,7 @@ variable worker_name_flavor_map_sc {
 
 variable "worker_anti_affinity_policy_sc" {
   description = "This can be set to 'anti-affinity' or 'soft-anti-affinity' to spread out workers on different physical machines, otherwise leave it empty"
-  type = string
+  type        = string
 }
 
 variable worker_names_wc {
@@ -78,7 +78,7 @@ variable worker_name_flavor_map_wc {
 
 variable "worker_anti_affinity_policy_wc" {
   description = "This can be set to 'anti-affinity' or 'soft-anti-affinity' to spread out workers on different physical machines, otherwise leave it empty"
-  type = string
+  type        = string
 }
 
 # For masters
@@ -98,7 +98,7 @@ variable master_name_flavor_map_sc {
 
 variable "master_anti_affinity_policy_sc" {
   description = "This can be set to 'anti-affinity' or 'soft-anti-affinity' to spread out masters on different physical machines, otherwise leave it empty"
-  type = string
+  type        = string
 }
 
 variable master_names_wc {
@@ -117,7 +117,7 @@ variable master_name_flavor_map_wc {
 
 variable "master_anti_affinity_policy_wc" {
   description = "This can be set to 'anti-affinity' or 'soft-anti-affinity' to spread out masters on different physical machines, otherwise leave it empty"
-  type = string
+  type        = string
 }
 
 variable public_ingress_cidr_whitelist {

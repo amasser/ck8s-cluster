@@ -17,7 +17,7 @@ variable dns_prefix {
 }
 
 variable "sub_domains_sc" {
-  type = list(string)
+  type        = list(string)
   description = "The sub domain names that should point to the service cluster loadbalancer. These will be combined with the dns_prefix to form the FQDN, like this: sub_domain.dns_prefix."
   default = [
     "*.ops",
@@ -30,7 +30,7 @@ variable "sub_domains_sc" {
 }
 
 variable "sub_domains_wc" {
-  type = list(string)
+  type        = list(string)
   description = "The sub domain names that should point to the workload cluster loadbalancer. These will be combined with the dns_prefix to form the FQDN, like this: sub_domain.dns_prefix."
   default = [
     "*",
@@ -43,11 +43,11 @@ variable "aws_dns_zone_id" {}
 variable "role_arn" {}
 
 variable "dns_record_sc" {
-  type = string
+  type        = string
   description = "The FQDN of the service cluster loadbalancer."
 }
 
 variable "dns_record_wc" {
-  type = string
+  type        = string
   description = "The FQDN of the workload cluster loadbalancer."
 }

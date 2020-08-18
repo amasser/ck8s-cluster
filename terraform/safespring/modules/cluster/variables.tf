@@ -50,7 +50,7 @@ variable "master_name_flavor_map" {
 
 variable "master_anti_affinity_policy" {
   description = "This can be set to 'anti-affinity' to spread out masters on different physical machines, otherwise leave it empty"
-  type = string
+  type        = string
 }
 
 # For workers
@@ -64,7 +64,7 @@ variable "worker_name_flavor_map" {
 
 variable "worker_anti_affinity_policy" {
   description = "This can be set to 'anti-affinity' to spread out workers on different physical machines, otherwise leave it empty"
-  type = string
+  type        = string
 }
 
 # For loadbalancers

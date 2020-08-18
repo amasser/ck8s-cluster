@@ -18,5 +18,5 @@ resource "tfe_workspace" "workspace" {
   name         = var.workspace_name
   organization = var.organization
   // Local execution mode
-  operations   = false
+  operations = false
 }

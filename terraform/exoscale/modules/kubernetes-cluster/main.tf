@@ -16,7 +16,7 @@ data "exoscale_compute" "master_nodes" {
   id = each.value.id
 
   # Since private IP address is not assigned until the nics are created we need this
-  depends_on = [ exoscale_nic.master_private_network_nic ]
+  depends_on = [exoscale_nic.master_private_network_nic]
 }
 
 data "exoscale_compute" "worker_nodes" {
@@ -25,25 +25,25 @@ data "exoscale_compute" "worker_nodes" {
   id = each.value.id
 
   # Since private IP address is not assigned until the nics are created we need this
-  depends_on = [ exoscale_nic.worker_private_network_nic ]
+  depends_on = [exoscale_nic.worker_private_network_nic]
 }
 
 data "exoscale_compute" "nfs_node" {
   id = exoscale_compute.nfs.id
 
   # Since private IP address is not assigned until the nics are created we need this
-  depends_on = [ exoscale_nic.nfs_private_network_nic ]
+  depends_on = [exoscale_nic.nfs_private_network_nic]
 }
 
 resource "exoscale_network" "private_network" {
-  zone  = var.zone
-  name  = "${var.prefix}-network"
+  zone = var.zone
+  name = "${var.prefix}-network"
 
   start_ip = cidrhost(var.private_network_cidr, 1)
   # cidr -1 = Broadcast address
   # cidr -2 = DHCP server address (exoscale specific)
-  end_ip   = cidrhost(var.private_network_cidr, -3)
-  netmask  = cidrnetmask(var.private_network_cidr)
+  end_ip  = cidrhost(var.private_network_cidr, -3)
+  netmask = cidrnetmask(var.private_network_cidr)
 }
 
 resource "exoscale_compute" "master" {

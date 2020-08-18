@@ -26,8 +26,8 @@ resource "openstack_compute_instance_v2" "instance" {
   }
 
   scheduler_hints {
-      group = var.server_group_id
-   }
+    group = var.server_group_id
+  }
 }
 
 resource "openstack_compute_floatingip_v2" "fip" {
