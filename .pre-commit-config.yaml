@@ -14,3 +14,7 @@ repos:
 # Enable when we have proper comments everywhere.
 #    - id: go-lint
     - id: go-imports
+- repo: git://github.com/antonbabenko/pre-commit-terraform
+  rev: v1.31.0
+  hooks:
+    - id: terraform_fmt
