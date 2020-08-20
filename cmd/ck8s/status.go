@@ -118,7 +118,7 @@ func statusSSH(
 
 		if err := machineClient.WaitForSSH(timeout); err != nil {
 			printMachineStatus("SSH", name, machine, false)
-			errChain = multierror.Append(fmt.Errorf(
+			errChain = multierror.Append(errChain, fmt.Errorf(
 				"ssh status failed for %s: %w",
 				name, err,
 			))
@@ -143,14 +143,14 @@ func statusNode(
 			exists, err := clusterClient.NodeExists(name)
 			if err != nil {
 				printMachineStatus("K8S node", name, machine, false)
-				errChain = multierror.Append(fmt.Errorf(
+				errChain = multierror.Append(errChain, fmt.Errorf(
 					"node status failed for %s: %w",
 					name, err,
 				))
 				continue
 			} else if !exists {
 				printMachineStatus("K8S node", name, machine, false)
-				errChain = multierror.Append(fmt.Errorf(
+				errChain = multierror.Append(errChain, fmt.Errorf(
 					"node does not exist in Kubernetes: %s",
 					name,
 				))
