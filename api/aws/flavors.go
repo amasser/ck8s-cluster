@@ -40,115 +40,106 @@ func Default(clusterType api.ClusterType, clusterName string) *Cluster {
 func Development(clusterType api.ClusterType, clusterName string) api.Cluster {
 	cluster := Default(clusterType, clusterName)
 
-	cluster.tfvars.Region = "us-west-1"
+	cloudProvider := NewCloudProvider()
 
-	cluster.tfvars.MachinesSC = map[string]api.Machine{
-		"master-0": {
-			NodeType: api.Master,
-			Size:     "t3.small",
-		},
-		"worker-0": {
-			NodeType: api.Worker,
-			Size:     "t3.xlarge",
-		},
-		"worker-1": {
-			NodeType: api.Worker,
-			Size:     "t3.large",
-		},
+	master, err := api.NewMachineFactory(
+		cloudProvider,
+		api.Master,
+		"t3.small",
+	).Build()
+	if err != nil {
+		panic(err)
+	}
+	workerExtraLarge, err := api.NewMachineFactory(
+		cloudProvider,
+		api.Worker,
+		"t3.xlarge",
+	).Build()
+	if err != nil {
+		panic(err)
+	}
+	workerLarge, err := api.NewMachineFactory(
+		cloudProvider,
+		api.Worker,
+		"t3.large",
+	).Build()
+	if err != nil {
+		panic(err)
 	}
 
-	cluster.tfvars.MachinesWC = map[string]api.Machine{
-		"master-0": {
-			NodeType: api.Master,
-			Size:     "t3.small",
-		},
-		"worker-0": {
-			NodeType: api.Worker,
-			Size:     "t3.large",
-		},
+	cluster.tfvars.Region = "us-west-1"
+
+	cluster.tfvars.MachinesSC = map[string]*api.Machine{
+		"master-0": master,
+		"worker-0": workerExtraLarge,
+		"worker-1": workerLarge,
+	}
+
+	cluster.tfvars.MachinesWC = map[string]*api.Machine{
+		"master-0": master,
+		"worker-0": workerLarge,
 		// TODO Should we use two nodes here?
-		"worker-1": {
-			NodeType: api.Worker,
-			Size:     "t3.large",
-		},
+		"worker-1": workerLarge,
 	}
 
 	return cluster
 }
 
 func Production(clusterType api.ClusterType, clusterName string) api.Cluster {
+	// TODO:
+	// - Safespring has 8 cores for the "extra-large" and 4 for "large"
+	//   but here we have only 4 and 2 respectivly.
+	// - Maybe we should switch to non-burstable instances?
+
 	cluster := Default(clusterType, clusterName)
+
+	cloudProvider := NewCloudProvider()
+
+	master, err := api.NewMachineFactory(
+		cloudProvider,
+		api.Master,
+		"t3.small",
+	).Build()
+	if err != nil {
+		panic(err)
+	}
+	workerExtraLarge, err := api.NewMachineFactory(
+		cloudProvider,
+		api.Worker,
+		"t3.xlarge",
+	).Build()
+	if err != nil {
+		panic(err)
+	}
+	workerLarge, err := api.NewMachineFactory(
+		cloudProvider,
+		api.Worker,
+		"t3.large",
+	).Build()
+	if err != nil {
+		panic(err)
+	}
 
 	cluster.tfvars.Region = "us-west-1"
 
-	cluster.tfvars.MachinesSC = map[string]api.Machine{
-		// Masters ------------------------------------
-		"master-0": {
-			NodeType: api.Master,
-			Size:     "t3.small",
-		},
-		"master-1": {
-			NodeType: api.Master,
-			Size:     "t3.small",
-		},
-		"master-2": {
-			NodeType: api.Master,
-			Size:     "t3.small",
-		},
-		// Workers ------------------------------------
-		// TODO:
-		// - Safespring has 8 cores for the "extra-large" and 4 for "large"
-		//   but here we have only 4 and 2 respectivly.
-		// - Maybe we should switch to non-burstable instances?
-		"worker-0": {
-			NodeType: api.Worker,
-			Size:     "t3.xlarge",
-		},
-		"worker-1": {
-			NodeType: api.Worker,
-			Size:     "t3.large",
-		},
-		"worker-2": {
-			NodeType: api.Worker,
-			Size:     "t3.large",
-		},
-		"worker-3": {
-			NodeType: api.Worker,
-			Size:     "t3.large",
-		},
+	cluster.tfvars.MachinesSC = map[string]*api.Machine{
+		"master-0": master,
+		"master-1": master,
+		"master-2": master,
+		"worker-0": workerExtraLarge,
+		"worker-1": workerLarge,
+		"worker-2": workerLarge,
+		"worker-3": workerLarge,
 	}
 
-	cluster.tfvars.MachinesWC = map[string]api.Machine{
-		// Masters ------------------------------------
-		"master-0": {
-			NodeType: api.Master,
-			Size:     "t3.small",
-		},
-		"master-1": {
-			NodeType: api.Master,
-			Size:     "t3.small",
-		},
-		"master-2": {
-			NodeType: api.Master,
-			Size:     "t3.small",
-		},
-		// Workers ------------------------------------
-		"worker-ck8s-0": {
-			NodeType: api.Worker,
-			Size:     "t3.large",
-		},
-		"worker-0": {
-			NodeType: api.Worker,
-			Size:     "t3.large",
-		},
-		"worker-1": {
-			NodeType: api.Worker,
-			Size:     "t3.large",
-		},
-		"worker-2": {
-			NodeType: api.Worker,
-			Size:     "t3.large",
-		},
+	cluster.tfvars.MachinesWC = map[string]*api.Machine{
+		"master-0": master,
+		"master-1": master,
+		"master-2": master,
+		"worker-ck8s-0": workerLarge,
+		"worker-0": workerLarge,
+		"worker-1": workerLarge,
+		"worker-2": workerLarge,
 	}
 
 	return cluster

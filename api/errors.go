@@ -68,3 +68,34 @@ func (e *UnsupportedClusterFlavorError) Error() string {
 		e.CloudProvider, e.ClusterFlavor,
 	)
 }
+
+type UnsupportedImageError struct {
+	CloudProvider CloudProviderType
+	Image         string
+}
+
+func NewUnsupportedImageError(
+	c CloudProviderType,
+	i string,
+) *UnsupportedImageError {
+	return &UnsupportedImageError{c, i}
+}
+
+func (e *UnsupportedImageError) Error() string {
+	return fmt.Sprintf(
+		"unsupported image for cloud provider '%s': %s",
+		e.CloudProvider, e.Image,
+	)
+}
+
+type MachineAlreadyExistsError struct {
+	name string
+}
+
+func NewMachineAlreadyExistsError(n string) *MachineAlreadyExistsError {
+	return &MachineAlreadyExistsError{n}
+}
+
+func (e *MachineAlreadyExistsError) Error() string {
+	return fmt.Sprintf("machine already exists: %s", e.name)
+}

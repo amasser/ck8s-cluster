@@ -431,7 +431,24 @@ func (c *ClusterClient) TerraformDestroy() error {
 	return nil
 }
 
-func (c *ClusterClient) DesiredMachines() map[string]api.Machine {
+func (c *ClusterClient) TerraformPlanNoDiff() error {
+	c.logger.Info("client_terraform_plan_no_diff")
+
+	if err := c.terraform.Init(); err != nil {
+		return err
+	}
+
+	if err := c.terraform.PlanNoDiff(); err != nil {
+		if errors.Is(err, runner.TerraformPlanDiffErr) {
+			return err
+		}
+		return fmt.Errorf("error checking if Terraform plan has diff: %w", err)
+	}
+
+	return nil
+}
+
+func (c *ClusterClient) DesiredMachines() map[string]*api.Machine {
 	c.logger.Info("client_desired_machines")
 	return c.cluster.Machines()
 }
@@ -461,38 +478,118 @@ func (c *ClusterClient) CurrentMachine(name string) (api.MachineState, error) {
 	return state.Machine(name)
 }
 
-func (c *ClusterClient) CloneNode(name string) error {
+func (c *ClusterClient) addNode(
+	name string,
+	machine *api.Machine,
+) (string, api.MachineState, error) {
+	// Make sure no changes are already pending.
+	if err := c.TerraformPlanNoDiff(); err != nil {
+		return name, api.MachineState{}, err
+	}
+
+	// Configure the machine.
+	name, err := c.cluster.AddMachine(name, machine)
+	if err != nil {
+		return name, api.MachineState{}, fmt.Errorf(
+			"error adding machine to configuration: %w", err,
+		)
+	}
+	if err := c.configHandler.WriteTFVars(c.cluster); err != nil {
+		return name, api.MachineState{}, fmt.Errorf(
+			"error writing tfvars: %w", err,
+		)
+	}
+
+	// Create the machine.
+	if err := c.TerraformApply(); err != nil {
+		return name, api.MachineState{}, fmt.Errorf(
+			"error applying Terraform config: %w", err,
+		)
+	}
+
+	// Wait for the machine to become available.
+	machineState, err := c.CurrentMachine(name)
+	if err != nil {
+		return name, machineState, fmt.Errorf("error getting machine: %w", err)
+	}
+	if err := c.waitForNewMachine(machineState); err != nil {
+		return name, machineState, err
+	}
+
+	// Join the node.
+	if err := c.ansible.JoinCluster(); err != nil {
+		return name, machineState, fmt.Errorf("error joining cluster: %w", err)
+	}
+
+	return name, machineState, nil
+}
+
+func (c *ClusterClient) AddNode(
+	name string,
+	nodeType api.NodeType,
+	size string,
+	image string,
+	providerSettings map[string]interface{},
+) (string, api.MachineState, error) {
+	c.logger.Info(
+		"client_node_add",
+		zap.String("name", name),
+		zap.String("node_type", string(nodeType)),
+		zap.String("size", size),
+		zap.String("image", image),
+		// TODO: Log provider settings
+	)
+
+	cloudProvider, err := CloudProviderFromType(c.cluster.CloudProvider())
+	if err != nil {
+		return "", api.MachineState{}, err
+	}
+
+	machineFactory := api.NewMachineFactory(cloudProvider, nodeType, size)
+
+	if image != "" {
+		machineFactory.WithImage(image)
+	}
+
+	if providerSettings != nil {
+		machineFactory.WithProviderSettings(providerSettings)
+	}
+
+	machine, err := machineFactory.Build()
+	if err != nil {
+		return "", api.MachineState{}, fmt.Errorf(
+			"error building machine configuration: %w", err,
+		)
+	}
+
+	return c.addNode(name, machine)
+}
+
+func (c *ClusterClient) CloneNode(
+	name string,
+) (string, api.MachineState, error) {
 	c.logger.Info(
 		"client_node_clone",
 		zap.String("name", name),
 	)
 
-	cloneName, err := c.cluster.CloneMachine(name)
+	// Get machine to clone from configuration.
+	machine, ok := c.DesiredMachines()[name]
+	if !ok {
+		return "", api.MachineState{}, fmt.Errorf(
+			"error machine not found: %s", name,
+		)
+	}
+
+	// Clone the machine by adding a copy.
+	cloneName, machineState, err := c.addNode("", machine)
 	if err != nil {
-		return fmt.Errorf("error cloning machine: %w", err)
-	}
-	if err := c.configHandler.WriteTFVars(c.cluster); err != nil {
-		return fmt.Errorf("error writing tfvars: %w", err)
-	}
-
-	if err := c.Apply(); err != nil {
-		return fmt.Errorf("error applying Terraform config: %w", err)
+		return cloneName, machineState, fmt.Errorf(
+			"error adding machine: %w", err,
+		)
 	}
 
-	machine, err := c.CurrentMachine(cloneName)
-	if err != nil {
-		return fmt.Errorf("error getting machine: %w", err)
-	}
-
-	if err := c.waitForNewMachine(machine); err != nil {
-		return err
-	}
-
-	if err := c.ansible.JoinCluster(); err != nil {
-		return fmt.Errorf("error joining cluster: %w", err)
-	}
-
-	return nil
+	return cloneName, machineState, nil
 }
 
 func (c *ClusterClient) waitForNewMachine(machine api.MachineState) error {
@@ -548,11 +645,17 @@ func (c *ClusterClient) RemoveNode(name string) error {
 
 	logger.Info("client_node_remove")
 
+	// Make sure no changes are already pending.
+	if err := c.TerraformPlanNoDiff(); err != nil {
+		return err
+	}
+
 	nodeExists, err := c.NodeExists(name)
 	if err != nil {
 		return fmt.Errorf("error checking node existence: %w", err)
 	}
 
+	// Drain the node.
 	if nodeExists {
 		if err := c.DrainNode(name); err != nil {
 			return err
@@ -561,11 +664,13 @@ func (c *ClusterClient) RemoveNode(name string) error {
 		logger.Warn("client_node_remove_node_not_found")
 	}
 
+	// Reset the machine.
 	// TODO: Do not throw error if the node hasn't joined k8s
 	if err := c.ResetNode(name); err != nil {
 		return fmt.Errorf("error resetting node: %w", err)
 	}
 
+	// Remove the machine.
 	// TODO: handle machine already removed from tfvars
 	if err := c.cluster.RemoveMachine(name); err != nil {
 		return fmt.Errorf("error removing machine: %w", err)
@@ -573,11 +678,11 @@ func (c *ClusterClient) RemoveNode(name string) error {
 	if err := c.configHandler.WriteTFVars(c.cluster); err != nil {
 		return fmt.Errorf("error writing tfvars: %w", err)
 	}
-
 	if err := c.TerraformApply(); err != nil {
 		return fmt.Errorf("error applying Terraform config: %w", err)
 	}
 
+	// Delete the node from Kubernetes.
 	if nodeExists {
 		c.kubectl.DeleteNode(name)
 	}
@@ -585,31 +690,24 @@ func (c *ClusterClient) RemoveNode(name string) error {
 	return nil
 }
 
-func (c *ClusterClient) ReplaceNode(name string) error {
+func (c *ClusterClient) ReplaceNode(
+	name string,
+) (string, api.MachineState, error) {
 	c.logger.Info(
 		"client_node_replace",
 		zap.String("name", name),
 	)
-	if err := c.terraform.Init(); err != nil {
-		return err
-	}
 
-	if err := c.terraform.PlanNoDiff(); err != nil {
-		if errors.Is(err, runner.TerraformPlanDiffErr) {
-			return err
-		}
-		return fmt.Errorf("error checking if Terraform plan has diff: %w", err)
-	}
-
-	if err := c.CloneNode(name); err != nil {
-		return err
+	cloneName, cloneMachineState, err := c.CloneNode(name)
+	if err != nil {
+		return "", cloneMachineState, err
 	}
 
 	if err := c.RemoveNode(name); err != nil {
-		return err
+		return "", cloneMachineState, err
 	}
 
-	return nil
+	return cloneName, cloneMachineState, nil
 }
 
 func (c *ClusterClient) Kubectl(args []string) error {

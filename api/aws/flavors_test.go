@@ -11,6 +11,8 @@ func TestFlavors(t *testing.T) {
 	clusterType := api.ServiceCluster
 	clusterName := "foo"
 
+	latestImage := supportedImages["us-west-1"][len(supportedImages["us-west-1"])-1]
+
 	type testCase struct {
 		want, got api.Cluster
 	}
@@ -81,33 +83,39 @@ func TestFlavors(t *testing.T) {
 				APIServerWhitelist:         []string{},
 				NodeportWhitelist:          []string{},
 
-				MachinesSC: map[string]api.Machine{
+				MachinesSC: map[string]*api.Machine{
 					"master-0": {
 						NodeType: api.Master,
 						Size:     "t3.small",
+						Image:    latestImage,
 					},
 					"worker-0": {
 						NodeType: api.Worker,
 						Size:     "t3.xlarge",
+						Image:    latestImage,
 					},
 					"worker-1": {
 						NodeType: api.Worker,
 						Size:     "t3.large",
+						Image:    latestImage,
 					},
 				},
 
-				MachinesWC: map[string]api.Machine{
+				MachinesWC: map[string]*api.Machine{
 					"master-0": {
 						NodeType: api.Master,
 						Size:     "t3.small",
+						Image:    latestImage,
 					},
 					"worker-0": {
 						NodeType: api.Worker,
 						Size:     "t3.large",
+						Image:    latestImage,
 					},
 					"worker-1": {
 						NodeType: api.Worker,
 						Size:     "t3.large",
+						Image:    latestImage,
 					},
 				},
 			},
@@ -145,65 +153,79 @@ func TestFlavors(t *testing.T) {
 				APIServerWhitelist:         []string{},
 				NodeportWhitelist:          []string{},
 
-				MachinesSC: map[string]api.Machine{
+				MachinesSC: map[string]*api.Machine{
 					"master-0": {
 						NodeType: api.Master,
 						Size:     "t3.small",
+						Image:    latestImage,
 					},
 					"master-1": {
 						NodeType: api.Master,
 						Size:     "t3.small",
+						Image:    latestImage,
 					},
 					"master-2": {
 						NodeType: api.Master,
 						Size:     "t3.small",
+						Image:    latestImage,
 					},
 					"worker-0": {
 						NodeType: api.Worker,
 						Size:     "t3.xlarge",
+						Image:    latestImage,
 					},
 					"worker-1": {
 						NodeType: api.Worker,
 						Size:     "t3.large",
+						Image:    latestImage,
 					},
 					"worker-2": {
 						NodeType: api.Worker,
 						Size:     "t3.large",
+						Image:    latestImage,
 					},
 					"worker-3": {
 						NodeType: api.Worker,
 						Size:     "t3.large",
+						Image:    latestImage,
 					},
 				},
 
-				MachinesWC: map[string]api.Machine{
+				MachinesWC: map[string]*api.Machine{
 					"master-0": {
 						NodeType: api.Master,
 						Size:     "t3.small",
+						Image:    latestImage,
 					},
 					"master-1": {
 						NodeType: api.Master,
 						Size:     "t3.small",
+						Image:    latestImage,
 					},
 					"master-2": {
 						NodeType: api.Master,
 						Size:     "t3.small",
+						Image:    latestImage,
 					},
 					"worker-0": {
 						NodeType: api.Worker,
 						Size:     "t3.large",
+						Image:    latestImage,
 					},
 					"worker-1": {
 						NodeType: api.Worker,
 						Size:     "t3.large",
+						Image:    latestImage,
 					},
 					"worker-2": {
 						NodeType: api.Worker,
 						Size:     "t3.large",
+						Image:    latestImage,
 					},
 					"worker-ck8s-0": {
 						NodeType: api.Worker,
 						Size:     "t3.large",
+						Image:    latestImage,
 					},
 				},
 			},

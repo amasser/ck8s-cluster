@@ -2,31 +2,35 @@
   "api_server_whitelist": ["1.2.3.4/32", "4.3.2.1/32"],
   "machines_sc": {
     "master-0": {
-      "es_local_storage_capacity": 0,
       "node_type": "master",
-      "size": "Small"
+      "size": "Small",
+      "provider_settings": null
     },
     "worker-0": {
-      "es_local_storage_capacity": 26,
       "node_type": "worker",
-      "size": "Extra-large"
+      "size": "Extra-large",
+      "provider_settings": {
+        "es_local_storage_capacity": 26
+      }
     },
     "worker-1": {
-      "es_local_storage_capacity": 26,
       "node_type": "worker",
-      "size": "Large"
+      "size": "Large",
+      "provider_settings": {
+        "es_local_storage_capacity": 26
+      }
     }
   },
   "machines_wc": {
     "master-0": {
-      "es_local_storage_capacity": 0,
       "node_type": "master",
-      "size": "Small"
+      "size": "Small",
+      "provider_settings": null
     },
     "worker-0": {
-      "es_local_storage_capacity": 0,
       "node_type": "worker",
-      "size": "Large"
+      "size": "Large",
+      "provider_settings": null
     }
   },
   "nfs_size": "Small",

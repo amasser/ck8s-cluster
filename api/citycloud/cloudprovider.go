@@ -4,6 +4,10 @@ import (
 	"github.com/elastisys/ck8s/api"
 )
 
+var supportedImages = []string{
+	"CK8S-BaseOS-v0.0.6",
+}
+
 var clusterFlavorMap = map[api.ClusterFlavor]func(api.ClusterType, string) api.Cluster{
 	FlavorDevelopment: Development,
 	FlavorProduction:  Production,
@@ -15,6 +19,10 @@ type CloudProvider struct{}
 // NewCloudProvider TODO
 func NewCloudProvider() *CloudProvider {
 	return &CloudProvider{}
+}
+
+func (e *CloudProvider) Type() api.CloudProviderType {
+	return api.CityCloud
 }
 
 // Flavors TODO
@@ -53,4 +61,12 @@ func (e *CloudProvider) TerraformBackendConfig() *api.TerraformBackendConfig {
 	}
 	backendConfig.Workspaces.Prefix = "ck8s-citycloud-"
 	return backendConfig
+}
+
+func (e *CloudProvider) MachineImages(api.NodeType) []string {
+	return supportedImages
+}
+
+func (e *CloudProvider) MachineSettings() interface{} {
+	return nil
 }

@@ -3,12 +3,17 @@
 - The old Terraform variables configuration (config.tfvars) is no longer
   supported and needs to be updated to the new format (tfvars.json). However,
   once the configuration has been updated it can be applied without any change.
-  See: https://github.com/elastisys/ck8s-cluster/pull/61
+  See: [docs/migration/0.6.0.md#tfvars](docs/migration/0.6.0.md#tfvars)
 
 ### Release notes
 
 - The prod flavor is broken on Exoscale due to the machine disks being too small for the local volumes.
   You may configure smaller volumes than the default to work around this.
+
+### Added
+
+- Added prod flavor for production grade defaults.
+- Command to add new machines.
 
 ### Fixed
 
@@ -35,7 +40,3 @@
 - Removed CRDs. These will be installed from the apps repository instead.
 - Reduced local volume size for dev flavor.
 - Reduced control plane node sizes on Safespring for dev flavor.
-
-### Added
-
-- Added prod flavor for production grade defaults.

@@ -10,9 +10,12 @@ variable "prefix" {}
 
 variable "machines" {
   type = map(object({
-    node_type                 = string
-    size                      = string
-    es_local_storage_capacity = string
+    node_type = string
+    size      = string
+    image     = string
+    provider_settings = object({
+      es_local_storage_capacity = number
+    })
   }))
 }
 
@@ -35,8 +38,6 @@ variable "nodeport_whitelist" {
 variable "private_network_cidr" {
   default = "172.0.10.0/24"
 }
-
-variable "compute_instance_image" {}
 
 ## DNS
 variable "dns_list" {

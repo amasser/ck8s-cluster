@@ -298,19 +298,6 @@ func (c *ConfigHandler) secretsViper() *viper.Viper {
 	return v
 }
 
-func (c *ConfigHandler) tfvarsViper() *viper.Viper {
-	tfVarsPath := c.configPath[api.TFVarsFile]
-
-	path, name, ext := splitPath(tfVarsPath.Path)
-
-	v := viper.New()
-	v.SetConfigName(name + "." + ext)
-	v.SetConfigType(tfVarsPath.Format)
-	v.AddConfigPath(path)
-
-	return v
-}
-
 func (c *ConfigHandler) readConfig() (api.Cluster, error) {
 	v := c.configViper()
 
@@ -363,13 +350,17 @@ func (c *ConfigHandler) readSecrets(cluster api.Cluster) error {
 func (c *ConfigHandler) readTFVars(cluster api.Cluster) error {
 	c.logger.Debug("config_handler_tfvars_read")
 
-	v := c.tfvarsViper()
+	data, err := ioutil.ReadFile(c.configPath[api.TFVarsFile].Path)
+	if err != nil {
+		return fmt.Errorf("error reading tfvars: %w", err)
+	}
 
-	if err := v.ReadInConfig(); err != nil {
+	cloudProvider, err := CloudProviderFromType(cluster.CloudProvider())
+	if err != nil {
 		return err
 	}
 
-	if err := v.Unmarshal(cluster.TFVars()); err != nil {
+	if err := api.DecodeTFVars(cloudProvider, data, cluster); err != nil {
 		return fmt.Errorf("error decoding tfvars: %w", err)
 	}
 
@@ -379,23 +370,20 @@ func (c *ConfigHandler) readTFVars(cluster api.Cluster) error {
 func (c *ConfigHandler) writeTFVars(cluster api.Cluster) error {
 	c.logger.Debug("config_handler_tfvars_write")
 
-	// TODO: Could consider cutting Viper out of the equation here and simply
-	//		 marshal and write ourselves instead of having to the marshal, read
-	// 		 and write dance.
-
-	v := c.tfvarsViper()
-
-	data, err := json.Marshal(cluster.TFVars())
+	data, err := json.MarshalIndent(cluster.TFVars(), "", "  ")
 	if err != nil {
-		return fmt.Errorf("error encoding tfvars: %s", err)
+		return fmt.Errorf("error encoding tfvars: %w", err)
 	}
 
-	if err := v.ReadConfig(bytes.NewBuffer(data)); err != nil {
-		return err
+	if err := ioutil.WriteFile(
+		c.configPath[api.TFVarsFile].Path,
+		data,
+		0644,
+	); err != nil {
+		return fmt.Errorf("error writing tfvars: %w", err)
 	}
 
-	// https://github.com/spf13/viper/issues/430
-	return v.WriteConfigAs(c.configPath[api.TFVarsFile].Path)
+	return nil
 }
 
 // WriteInfraJSON TODO Remove this when apps isn't dependent on it (maybe using terraform instead)

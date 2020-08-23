@@ -44,6 +44,7 @@ variable machines_sc {
   type = map(object({
     node_type = string
     size      = string
+    image     = string
   }))
 }
 
@@ -51,17 +52,6 @@ variable machines_wc {
   type = map(object({
     node_type = string
     size      = string
+    image     = string
   }))
-}
-
-# BaseOS 0.0.6, US West 1, k8s 1.15.11
-# ami-025fd2f1456a0e2e5
-variable aws_amis {
-  type = map
-  default = {
-    "sc_master" = "ami-025fd2f1456a0e2e5"
-    "sc_worker" = "ami-025fd2f1456a0e2e5"
-    "wc_master" = "ami-025fd2f1456a0e2e5"
-    "wc_worker" = "ami-025fd2f1456a0e2e5"
-  }
 }

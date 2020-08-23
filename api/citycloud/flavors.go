@@ -47,35 +47,45 @@ func Default(clusterType api.ClusterType, clusterName string) *Cluster {
 func Development(clusterType api.ClusterType, clusterName string) api.Cluster {
 	cluster := Default(clusterType, clusterName)
 
-	cluster.Cluster.TFVars.MachinesSC = map[string]api.Machine{
-		"master-0": {
-			NodeType: api.Master,
-			// 2C-4GB-50GB
-			Size: "96c7903e-32f0-421d-b6a2-a45c97b15665",
-		},
-		"worker-0": {
-			NodeType: api.Worker,
-			// 4C-16GB-50GB
-			Size: "d430b3cd-0216-43ff-878c-c08689c0001b",
-		},
-		"worker-1": {
-			NodeType: api.Worker,
-			// 4C-8GB-50GB
-			Size: "572a3b2e-6329-4053-b872-aecb1e70d8a6",
-		},
+	cloudProvider := NewCloudProvider()
+
+	master, err := api.NewMachineFactory(
+		cloudProvider,
+		api.Master,
+		// 2C-4GB-50GB
+		"96c7903e-32f0-421d-b6a2-a45c97b15665",
+	).Build()
+	if err != nil {
+		panic(err)
+	}
+	worker4C16GB50GB, err := api.NewMachineFactory(
+		cloudProvider,
+		api.Worker,
+		// 4C-16GB-50GB
+		"d430b3cd-0216-43ff-878c-c08689c0001b",
+	).Build()
+	if err != nil {
+		panic(err)
+	}
+	worker4C8GB50GB, err := api.NewMachineFactory(
+		cloudProvider,
+		api.Worker,
+		// 4C-8GB-50GB
+		"572a3b2e-6329-4053-b872-aecb1e70d8a6",
+	).Build()
+	if err != nil {
+		panic(err)
 	}
 
-	cluster.Cluster.TFVars.MachinesWC = map[string]api.Machine{
-		"master-0": {
-			NodeType: api.Master,
-			// 2C-4GB-50GB
-			Size: "96c7903e-32f0-421d-b6a2-a45c97b15665",
-		},
-		"worker-0": {
-			NodeType: api.Worker,
-			// 4C-8GB-50GB
-			Size: "572a3b2e-6329-4053-b872-aecb1e70d8a6",
-		},
+	cluster.Cluster.TFVars.MachinesSC = map[string]*api.Machine{
+		"master-0": master,
+		"worker-0": worker4C16GB50GB,
+		"worker-1": worker4C8GB50GB,
+	}
+
+	cluster.Cluster.TFVars.MachinesWC = map[string]*api.Machine{
+		"master-0": master,
+		"worker-0": worker4C8GB50GB,
 	}
 
 	cluster.Cluster.TFVars.MasterAntiAffinityPolicySC = "anti-affinity"
@@ -87,84 +97,54 @@ func Development(clusterType api.ClusterType, clusterName string) api.Cluster {
 func Production(clusterType api.ClusterType, clusterName string) api.Cluster {
 	cluster := Default(clusterType, clusterName)
 
-	cluster.Cluster.TFVars.MachinesSC = map[string]api.Machine{
-		// Masters ------------------------------------
-		"master-0": {
-			NodeType: api.Master,
-			// 2C-4GB-50GB
-			Size: "96c7903e-32f0-421d-b6a2-a45c97b15665",
-		},
-		"master-1": {
-			NodeType: api.Master,
-			// 2C-4GB-50GB
-			Size: "96c7903e-32f0-421d-b6a2-a45c97b15665",
-		},
-		"master-2": {
-			NodeType: api.Master,
-			// 2C-4GB-50GB
-			Size: "96c7903e-32f0-421d-b6a2-a45c97b15665",
-		},
-		// Workers ------------------------------------
-		"worker-0": {
-			NodeType: api.Worker,
-			// 8C-16GB-50GB
-			Size: "80c21068-032e-40b2-b02f-f06715b4de8a",
-		},
-		"worker-1": {
-			NodeType: api.Worker,
-			// 4C-8GB-50GB
-			Size: "572a3b2e-6329-4053-b872-aecb1e70d8a6",
-		},
-		"worker-2": {
-			NodeType: api.Worker,
-			// 4C-8GB-50GB
-			Size: "572a3b2e-6329-4053-b872-aecb1e70d8a6",
-		},
-		"worker-3": {
-			NodeType: api.Worker,
-			// 4C-8GB-50GB
-			Size: "572a3b2e-6329-4053-b872-aecb1e70d8a6",
-		},
+	cloudProvider := NewCloudProvider()
+
+	master, err := api.NewMachineFactory(
+		cloudProvider,
+		api.Master,
+		// 2C-4GB-50GB
+		"96c7903e-32f0-421d-b6a2-a45c97b15665",
+	).Build()
+	if err != nil {
+		panic(err)
+	}
+	worker8C16GB50GB, err := api.NewMachineFactory(
+		cloudProvider,
+		api.Worker,
+		// 8C-16GB-50GB
+		"80c21068-032e-40b2-b02f-f06715b4de8a",
+	).Build()
+	if err != nil {
+		panic(err)
+	}
+	worker4C8GB50GB, err := api.NewMachineFactory(
+		cloudProvider,
+		api.Worker,
+		// 4C-8GB-50GB
+		"572a3b2e-6329-4053-b872-aecb1e70d8a6",
+	).Build()
+	if err != nil {
+		panic(err)
 	}
 
-	cluster.Cluster.TFVars.MachinesWC = map[string]api.Machine{
-		// Masters ------------------------------------
-		"master-0": {
-			NodeType: api.Master,
-			// 2C-4GB-50GB
-			Size: "96c7903e-32f0-421d-b6a2-a45c97b15665",
-		},
-		"master-1": {
-			NodeType: api.Master,
-			// 2C-4GB-50GB
-			Size: "96c7903e-32f0-421d-b6a2-a45c97b15665",
-		},
-		"master-2": {
-			NodeType: api.Master,
-			// 2C-4GB-50GB
-			Size: "96c7903e-32f0-421d-b6a2-a45c97b15665",
-		},
-		// Workers ------------------------------------
-		"worker-ck8s-0": {
-			NodeType: api.Worker,
-			// 4C-8GB-50GB
-			Size: "572a3b2e-6329-4053-b872-aecb1e70d8a6",
-		},
-		"worker-0": {
-			NodeType: api.Worker,
-			// 4C-8GB-50GB
-			Size: "572a3b2e-6329-4053-b872-aecb1e70d8a6",
-		},
-		"worker-1": {
-			NodeType: api.Worker,
-			// 4C-8GB-50GB
-			Size: "572a3b2e-6329-4053-b872-aecb1e70d8a6",
-		},
-		"worker-2": {
-			NodeType: api.Worker,
-			// 4C-8GB-50GB
-			Size: "572a3b2e-6329-4053-b872-aecb1e70d8a6",
-		},
+	cluster.Cluster.TFVars.MachinesSC = map[string]*api.Machine{
+		"master-0": master,
+		"master-1": master,
+		"master-2": master,
+		"worker-0": worker8C16GB50GB,
+		"worker-1": worker4C8GB50GB,
+		"worker-2": worker4C8GB50GB,
+		"worker-3": worker4C8GB50GB,
+	}
+
+	cluster.Cluster.TFVars.MachinesWC = map[string]*api.Machine{
+		"master-0":      master,
+		"master-1":      master,
+		"master-2":      master,
+		"worker-ck8s-0": worker4C8GB50GB,
+		"worker-0":      worker4C8GB50GB,
+		"worker-1":      worker4C8GB50GB,
+		"worker-2":      worker4C8GB50GB,
 	}
 
 	cluster.Cluster.TFVars.MasterAntiAffinityPolicySC = "anti-affinity"

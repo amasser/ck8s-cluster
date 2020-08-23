@@ -7,11 +7,6 @@ variable "ssh_pub_key" {
   type        = string
 }
 
-variable "cluster_image" {
-  description = "id of image to use for worker and master VMs"
-  type        = string
-}
-
 variable public_ingress_cidr_whitelist {
   type = list
 }
@@ -38,6 +33,7 @@ variable machines {
   type = map(object({
     node_type = string
     size      = string
+    image     = string
   }))
 }
 

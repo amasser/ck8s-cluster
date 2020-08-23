@@ -19,25 +19,27 @@ variable prefix_wc {
   default     = ""
 }
 
-variable "compute_instance_image" {
-  default = "CK8S BaseOS v0.0.6"
-}
-
 variable machines_sc {
   description = "Service cluster machines"
   type = map(object({
-    node_type                 = string
-    size                      = string
-    es_local_storage_capacity = string
+    node_type = string
+    size      = string
+    image     = string
+    provider_settings = object({
+      es_local_storage_capacity = number
+    })
   }))
 }
 
 variable machines_wc {
   description = "Workload cluster machines"
   type = map(object({
-    node_type                 = string
-    size                      = string
-    es_local_storage_capacity = string
+    node_type = string
+    size      = string
+    image     = string
+    provider_settings = object({
+      es_local_storage_capacity = number
+    })
   }))
 }
 

@@ -4,11 +4,57 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
+	"github.com/elastisys/ck8s/api"
 	"github.com/elastisys/ck8s/client"
 )
 
+const (
+	nameFlag                   = "name"
+	imageFlag                  = "image"
+	esLocalStorageCapacityFlag = "es-local-storage"
+)
+
 func init() {
+	addCmd := &cobra.Command{
+		Use:   "add NODE_TYPE SIZE",
+		Short: "Add a Kubernetes node",
+		Long: `This command will add a Kubernetes node by:
+1. Adding the machine in the tfvars configuration and running terraform apply.
+2. Joining the new node to the Kubernetes cluster.`,
+		Args: ExactArgs(2),
+		RunE: withClusterClient(addNode),
+	}
+	addCmd.Flags().String(
+		nameFlag,
+		"",
+		"set name",
+	)
+	viper.BindPFlag(
+		nameFlag,
+		addCmd.Flags().Lookup(nameFlag),
+	)
+	addCmd.Flags().String(
+		imageFlag,
+		"",
+		"set image",
+	)
+	viper.BindPFlag(
+		imageFlag,
+		addCmd.Flags().Lookup(imageFlag),
+	)
+	addCmd.Flags().Float64(
+		esLocalStorageCapacityFlag,
+		0,
+		"set reserved local storage for Elasticsearch (Exoscale only)",
+	)
+	viper.BindPFlag(
+		esLocalStorageCapacityFlag,
+		addCmd.Flags().Lookup(esLocalStorageCapacityFlag),
+	)
+	rootCmd.AddCommand(addCmd)
+
 	rootCmd.AddCommand(&cobra.Command{
 		Use:   "clone NODE_NAME",
 		Short: "Clone a Kubernetes node",
@@ -68,6 +114,37 @@ gracefully by performing a rolling upgrade.`,
 	})
 }
 
+func addNode(
+	clusterClient *client.ClusterClient,
+	cmd *cobra.Command,
+	args []string,
+) error {
+	var providerSettings map[string]interface{}
+
+	if viper.IsSet(esLocalStorageCapacityFlag) {
+		providerSettings = map[string]interface{}{
+			"es_local_storage_capacity": viper.GetFloat64(
+				esLocalStorageCapacityFlag,
+			),
+		}
+	}
+
+	name, machine, err := clusterClient.AddNode(
+		viper.GetString(nameFlag),
+		api.NodeType(args[0]),
+		args[1],
+		viper.GetString(imageFlag),
+		providerSettings,
+	)
+	if err != nil {
+		return fmt.Errorf("error adding node: %s", err)
+	}
+
+	printMachine(name, machine)
+
+	return nil
+}
+
 func resetNode(
 	clusterClient *client.ClusterClient,
 	cmd *cobra.Command,
@@ -88,9 +165,13 @@ func cloneNode(
 ) error {
 	name := args[0]
 
-	if err := clusterClient.CloneNode(name); err != nil {
+	cloneName, cloneMachine, err := clusterClient.CloneNode(name)
+	if err != nil {
 		return fmt.Errorf("error cloning node: %s", err)
 	}
+
+	printMachine(cloneName, cloneMachine)
+
 	return nil
 }
 
@@ -114,9 +195,13 @@ func replaceNode(
 ) error {
 	name := args[0]
 
-	if err := clusterClient.ReplaceNode(name); err != nil {
+	cloneName, cloneMachine, err := clusterClient.ReplaceNode(name)
+	if err != nil {
 		return fmt.Errorf("error replacing node: %s", err)
 	}
+
+	printMachine(cloneName, cloneMachine)
+
 	return nil
 }
 

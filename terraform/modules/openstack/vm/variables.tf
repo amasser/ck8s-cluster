@@ -1,5 +1,3 @@
-
-variable "image_id" {}
 variable "key_pair" {}
 variable "network_id" {}
 variable "subnet_id" {}
@@ -11,7 +9,8 @@ variable "security_group_ids" {
 
 variable machines {
   type = map(object({
-    size = string
+    size  = string
+    image = string
   }))
 }
 

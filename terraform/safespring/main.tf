@@ -5,32 +5,12 @@ terraform {
   }
 }
 
-locals {
-  # Base image used to provision master and worker instances
-  cluster_image = "CK8S-BaseOS-v0.0.6"
-  # Base image used to provision loadbalancer instances
-  loadbalancer_image = "ubuntu-18.04-server-cloudimg-amd64-20190212.1"
-}
-
-data "openstack_images_image_v2" "cluster_image" {
-  name        = local.cluster_image
-  most_recent = true
-}
-
-data "openstack_images_image_v2" "loadbalancer_image" {
-  name        = local.loadbalancer_image
-  most_recent = true
-}
-
 module "service_cluster" {
   source = "./modules/cluster"
 
   prefix = var.prefix_sc == "" ? "${terraform.workspace}-service-cluster" : var.prefix_sc
 
   ssh_pub_key = var.ssh_pub_key_sc
-
-  cluster_image      = data.openstack_images_image_v2.cluster_image.id
-  loadbalancer_image = data.openstack_images_image_v2.loadbalancer_image.id
 
   public_ingress_cidr_whitelist = var.public_ingress_cidr_whitelist
   api_server_whitelist          = var.api_server_whitelist
@@ -63,9 +43,6 @@ module "workload_cluster" {
   prefix = var.prefix_wc == "" ? "${terraform.workspace}-workload-cluster" : var.prefix_wc
 
   ssh_pub_key = var.ssh_pub_key_wc
-
-  cluster_image      = data.openstack_images_image_v2.cluster_image.id
-  loadbalancer_image = data.openstack_images_image_v2.loadbalancer_image.id
 
   public_ingress_cidr_whitelist = var.public_ingress_cidr_whitelist
   api_server_whitelist          = var.api_server_whitelist

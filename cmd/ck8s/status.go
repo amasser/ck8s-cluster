@@ -55,7 +55,7 @@ func init() {
 func printMachineStatus(
 	statusName string,
 	machineName string,
-	machine api.Machine,
+	machine *api.Machine,
 	success bool,
 ) {
 	status := Green.Fmt("✔️")

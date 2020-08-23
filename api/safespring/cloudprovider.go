@@ -4,6 +4,20 @@ import (
 	"github.com/elastisys/ck8s/api"
 )
 
+var (
+	supportedCK8SBaseOSImages = []string{
+		"CK8S-BaseOS-v0.0.6",
+	}
+
+	supportedImages = map[api.NodeType][]string{
+		api.Master: supportedCK8SBaseOSImages,
+		api.Worker: supportedCK8SBaseOSImages,
+		api.LoadBalancer: {
+			"ubuntu-18.04-server-cloudimg-amd64-20190212.1",
+		},
+	}
+)
+
 var clusterFlavorMap = map[api.ClusterFlavor]func(api.ClusterType, string) api.Cluster{
 	FlavorDevelopment: Development,
 	FlavorProduction:  Production,
@@ -15,6 +29,10 @@ type CloudProvider struct{}
 // NewCloudProvider TODO
 func NewCloudProvider() *CloudProvider {
 	return &CloudProvider{}
+}
+
+func (e *CloudProvider) Type() api.CloudProviderType {
+	return api.Safespring
 }
 
 // Flavors TODO
@@ -53,4 +71,12 @@ func (e *CloudProvider) TerraformBackendConfig() *api.TerraformBackendConfig {
 	}
 	backendConfig.Workspaces.Prefix = "ck8s-safespring-"
 	return backendConfig
+}
+
+func (e *CloudProvider) MachineImages(nodeType api.NodeType) []string {
+	return supportedImages[nodeType]
+}
+
+func (e *CloudProvider) MachineSettings() interface{} {
+	return nil
 }

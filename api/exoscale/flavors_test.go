@@ -11,6 +11,8 @@ func TestFlavors(t *testing.T) {
 	clusterType := api.ServiceCluster
 	clusterName := "foo"
 
+	latestImage := supportedImages[len(supportedImages)-1]
+
 	type testCase struct {
 		want, got api.Cluster
 	}
@@ -74,40 +76,39 @@ func TestFlavors(t *testing.T) {
 				PublicIngressCIDRWhitelist: []string{},
 				APIServerWhitelist:         []string{},
 				NodeportWhitelist:          []string{},
-				MachinesSC: map[string]ExoscaleMachine{
+				MachinesSC: map[string]*api.Machine{
 					"master-0": {
-						Machine: api.Machine{
-							NodeType: api.Master,
-							Size:     "Small",
-						},
+						NodeType: api.Master,
+						Size:     "Small",
+						Image:    latestImage,
 					},
 					"worker-0": {
-						Machine: api.Machine{
-							NodeType: api.Worker,
-							Size:     "Extra-large",
+						NodeType: api.Worker,
+						Size:     "Extra-large",
+						Image:    latestImage,
+						ProviderSettings: &MachineSettings{
+							ESLocalStorageCapacity: 12,
 						},
-						ESLocalStorageCapacity: 12,
 					},
 					"worker-1": {
-						Machine: api.Machine{
-							NodeType: api.Worker,
-							Size:     "Large",
+						NodeType: api.Worker,
+						Size:     "Large",
+						Image:    latestImage,
+						ProviderSettings: &MachineSettings{
+							ESLocalStorageCapacity: 12,
 						},
-						ESLocalStorageCapacity: 12,
 					},
 				},
-				MachinesWC: map[string]ExoscaleMachine{
+				MachinesWC: map[string]*api.Machine{
 					"master-0": {
-						Machine: api.Machine{
-							NodeType: api.Master,
-							Size:     "Small",
-						},
+						NodeType: api.Master,
+						Size:     "Small",
+						Image:    latestImage,
 					},
 					"worker-0": {
-						Machine: api.Machine{
-							NodeType: api.Worker,
-							Size:     "Large",
-						},
+						NodeType: api.Worker,
+						Size:     "Large",
+						Image:    latestImage,
 					},
 				},
 				NFSSize: "Small",
@@ -143,96 +144,98 @@ func TestFlavors(t *testing.T) {
 				APIServerWhitelist:         []string{},
 				NodeportWhitelist:          []string{},
 
-				MachinesSC: map[string]ExoscaleMachine{
+				MachinesSC: map[string]*api.Machine{
 					"master-0": {
-						Machine: api.Machine{
-							NodeType: api.Master,
-							Size:     "Medium",
-						},
+						NodeType: api.Master,
+						Size:     "Medium",
+
+						Image: latestImage,
 					},
 					"master-1": {
-						Machine: api.Machine{
-							NodeType: api.Master,
-							Size:     "Medium",
-						},
+						NodeType: api.Master,
+						Size:     "Medium",
+
+						Image: latestImage,
 					},
 					"master-2": {
-						Machine: api.Machine{
-							NodeType: api.Master,
-							Size:     "Medium",
-						},
+						NodeType: api.Master,
+						Size:     "Medium",
+
+						Image: latestImage,
 					},
 					"worker-0": {
-						Machine: api.Machine{
-							NodeType: api.Worker,
-							Size:     "Extra-large",
-						},
-						ESLocalStorageCapacity: 0,
+						NodeType: api.Worker,
+						Size:     "Extra-large",
+
+						Image: latestImage,
 					},
 					"worker-1": {
-						Machine: api.Machine{
-							NodeType: api.Worker,
-							Size:     "Large",
+						NodeType: api.Worker,
+						Size:     "Large",
+
+						Image: latestImage,
+						ProviderSettings: &MachineSettings{
+							ESLocalStorageCapacity: 140,
 						},
-						ESLocalStorageCapacity: 140,
 					},
 					"worker-2": {
-						Machine: api.Machine{
-							NodeType: api.Worker,
-							Size:     "Large",
+						NodeType: api.Worker,
+						Size:     "Large",
+
+						Image: latestImage,
+						ProviderSettings: &MachineSettings{
+							ESLocalStorageCapacity: 140,
 						},
-						ESLocalStorageCapacity: 140,
 					},
 					"worker-3": {
-						Machine: api.Machine{
-							NodeType: api.Worker,
-							Size:     "Large",
-						},
-						ESLocalStorageCapacity: 0,
+						NodeType: api.Worker,
+						Size:     "Large",
+
+						Image: latestImage,
 					},
 				},
-				MachinesWC: map[string]ExoscaleMachine{
+				MachinesWC: map[string]*api.Machine{
 					"master-0": {
-						Machine: api.Machine{
-							NodeType: api.Master,
-							Size:     "Medium",
-						},
+						NodeType: api.Master,
+						Size:     "Medium",
+
+						Image: latestImage,
 					},
 					"master-1": {
-						Machine: api.Machine{
-							NodeType: api.Master,
-							Size:     "Medium",
-						},
+						NodeType: api.Master,
+						Size:     "Medium",
+
+						Image: latestImage,
 					},
 					"master-2": {
-						Machine: api.Machine{
-							NodeType: api.Master,
-							Size:     "Medium",
-						},
+						NodeType: api.Master,
+						Size:     "Medium",
+
+						Image: latestImage,
 					},
 					"worker-ck8s-0": {
-						Machine: api.Machine{
-							NodeType: api.Worker,
-							Size:     "Large",
-						},
+						NodeType: api.Worker,
+						Size:     "Large",
+
+						Image: latestImage,
 					},
 					"worker-0": {
-						Machine: api.Machine{
-							NodeType: api.Worker,
-							Size:     "Large",
-						},
+						NodeType: api.Worker,
+						Size:     "Large",
+
+						Image: latestImage,
 					},
 					"worker-1": {
-						Machine: api.Machine{
-							NodeType: api.Worker,
-							Size:     "Large",
-						},
+						NodeType: api.Worker,
+						Size:     "Large",
+
+						Image: latestImage,
 					},
 					"worker-2": {
-						Machine: api.Machine{
-							NodeType: api.Worker,
-							Size:     "Large",
-						},
+						NodeType: api.Worker,
+						Size:     "Large",
+
+						Image: latestImage,
 					},
 				},
 				NFSSize: "Small",

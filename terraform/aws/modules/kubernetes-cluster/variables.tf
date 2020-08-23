@@ -23,17 +23,10 @@ variable "ssh_pub_key" {
   description = "Path to the SSH public key to be used for authentication"
 }
 
-variable master_ami {
-  type = string
-}
-
-variable worker_ami {
-  type = string
-}
-
 variable machines {
   type = map(object({
     node_type = string
     size      = string
+    image     = string
   }))
 }

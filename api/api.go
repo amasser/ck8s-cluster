@@ -12,6 +12,8 @@ const (
 type ClusterFlavor string
 
 type CloudProvider interface {
+	// Type should return the cloud provider type.
+	Type() CloudProviderType
 	// Flavors should return a list of cluster flavors.
 	Flavors() []ClusterFlavor
 	// Default should return a cluster with only the default configuration set.
@@ -20,6 +22,13 @@ type CloudProvider interface {
 	Cluster(ClusterType, ClusterFlavor, string) (Cluster, error)
 	// TerraformBackendConfig should return the default backend config.
 	TerraformBackendConfig() *TerraformBackendConfig
+	// MachineImages should return a slice with the machine images that the
+	// provider supports. The images should be sorted from oldest to latest
+	// version.
+	MachineImages(NodeType) []string
+	// MachineSettings should return a provider specific machine settings
+	// struct.
+	MachineSettings() interface{}
 }
 
 type ClusterStateLoadFunc func(interface{}) error
@@ -29,7 +38,7 @@ type Cluster interface {
 	Secret() interface{}
 	TFVars() interface{}
 
-	Machines() map[string]Machine
+	Machines() map[string]*Machine
 
 	// TODO: We should be able to combine these if we only handled a single
 	// 		 cluster and deprecated the prefixes in tfvars.
@@ -39,8 +48,7 @@ type Cluster interface {
 	CloudProvider() CloudProviderType
 	CloudProviderVars(ClusterState) interface{}
 
-	CloneMachine(string) (string, error)
-
+	AddMachine(string, *Machine) (string, error)
 	RemoveMachine(string) error
 
 	// TODO: We should try to get rid of this.
@@ -53,11 +61,6 @@ type Cluster interface {
 	S3Buckets() map[string]string
 }
 
-type Machine struct {
-	NodeType NodeType `json:"node_type" mapstructure:"node_type" validate:"required"`
-	Size     string   `json:"size" mapstructure:"size" validate:"required"`
-}
-
 type ClusterState interface {
 	ControlPlanePublicIP() string
 	ControlPlaneEndpoint() string
@@ -67,13 +70,6 @@ type ClusterState interface {
 	Machines() map[string]MachineState
 
 	Machine(string) (MachineState, error)
-}
-
-type MachineState struct {
-	Machine
-
-	PublicIP  string
-	PrivateIP string
 }
 
 type ClusterType int
@@ -93,14 +89,6 @@ func (c ClusterType) String() string {
 		return "unknown"
 	}
 }
-
-type NodeType string
-
-const (
-	Master       NodeType = "master"
-	Worker       NodeType = "worker"
-	LoadBalancer NodeType = "loadbalancer"
-)
 
 type TerraformBackendConfig struct {
 	Hostname     string `hcl:"hostname"`

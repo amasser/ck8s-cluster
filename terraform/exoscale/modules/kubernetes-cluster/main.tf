@@ -4,8 +4,10 @@ data "exoscale_compute_template" "ubuntu" {
 }
 
 data "exoscale_compute_template" "os_image" {
+  for_each = var.machines
+
   zone = var.zone
-  name = var.compute_instance_image
+  name = each.value.image
   # TODO: remove this when the image is publicly published
   filter = "mine"
 }
@@ -58,7 +60,7 @@ resource "exoscale_compute" "master" {
   }
 
   display_name    = "${var.prefix}-${each.key}"
-  template_id     = data.exoscale_compute_template.os_image.id
+  template_id     = data.exoscale_compute_template.os_image[each.key].id
   size            = each.value.size
   disk_size       = 50
   key_pair        = exoscale_ssh_keypair.ssh_key.name
@@ -77,7 +79,7 @@ resource "exoscale_compute" "worker" {
   }
 
   display_name    = "${var.prefix}-${each.key}"
-  template_id     = data.exoscale_compute_template.os_image.id
+  template_id     = data.exoscale_compute_template.os_image[each.key].id
   size            = each.value.size
   disk_size       = 50
   key_pair        = exoscale_ssh_keypair.ssh_key.name
@@ -89,7 +91,7 @@ resource "exoscale_compute" "worker" {
     "${path.module}/templates/worker-cloud-init.tmpl",
     {
       eip_ip_address            = exoscale_ipaddress.ingress_controller_lb.ip_address
-      es_local_storage_capacity = each.value.es_local_storage_capacity
+      es_local_storage_capacity = each.value.provider_settings == null ? 0 : each.value.provider_settings.es_local_storage_capacity
     }
   )
 }

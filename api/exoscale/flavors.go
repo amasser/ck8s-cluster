@@ -47,46 +47,61 @@ func Default(clusterType api.ClusterType, clusterName string) *Cluster {
 func Development(clusterType api.ClusterType, clusterName string) api.Cluster {
 	cluster := Default(clusterType, clusterName)
 
-	cluster.tfvars.MachinesSC = map[string]ExoscaleMachine{
-		"master-0": {
-			Machine: api.Machine{
-				NodeType: api.Master,
-				Size:     "Small",
-			},
-		},
-		"worker-0": {
-			Machine: api.Machine{
-				NodeType: api.Worker,
-				Size:     "Extra-large",
-			},
-			// Match ES_DATA_STORAGE_SIZE in config.sh
-			// Note that this value is in GB while config.sh uses Gi
-			ESLocalStorageCapacity: 12,
-		},
-		"worker-1": {
-			Machine: api.Machine{
-				NodeType: api.Worker,
-				Size:     "Large",
-			},
-			// Match ES_DATA_STORAGE_SIZE in config.sh
-			// Note that this value is in GB while config.sh uses Gi
-			ESLocalStorageCapacity: 12,
-		},
+	cloudProvider := NewCloudProvider()
+
+	master, err := api.NewMachineFactory(
+		cloudProvider,
+		api.Master,
+		"Small",
+	).Build()
+	if err != nil {
+		panic(err)
 	}
 
-	cluster.tfvars.MachinesWC = map[string]ExoscaleMachine{
-		"master-0": {
-			Machine: api.Machine{
-				NodeType: api.Master,
-				Size:     "Small",
-			},
-		},
-		"worker-0": {
-			Machine: api.Machine{
-				NodeType: api.Worker,
-				Size:     "Large",
-			},
-		},
+	workerExtraLargeSC, err := api.NewMachineFactory(
+		cloudProvider,
+		api.Worker,
+		"Extra-large",
+	).WithProviderSettings(map[string]interface{}{
+		// Match ES_DATA_STORAGE_SIZE in config.sh
+		// Note that this value is in GB while config.sh uses Gi
+		"es_local_storage_capacity": 12,
+	}).Build()
+	if err != nil {
+		panic(err)
+	}
+
+	workerLargeSC, err := api.NewMachineFactory(
+		cloudProvider,
+		api.Worker,
+		"Large",
+	).WithProviderSettings(map[string]interface{}{
+		// Match ES_DATA_STORAGE_SIZE in config.sh
+		// Note that this value is in GB while config.sh uses Gi
+		"es_local_storage_capacity": 12,
+	}).Build()
+	if err != nil {
+		panic(err)
+	}
+
+	workerWC, err := api.NewMachineFactory(
+		cloudProvider,
+		api.Worker,
+		"Large",
+	).Build()
+	if err != nil {
+		panic(err)
+	}
+
+	cluster.tfvars.MachinesSC = map[string]*api.Machine{
+		"master-0": master,
+		"worker-0": workerExtraLargeSC,
+		"worker-1": workerLargeSC,
+	}
+
+	cluster.tfvars.MachinesWC = map[string]*api.Machine{
+		"master-0": master,
+		"worker-0": workerWC,
 	}
 
 	cluster.tfvars.NFSSize = "Small"
@@ -95,111 +110,81 @@ func Development(clusterType api.ClusterType, clusterName string) api.Cluster {
 }
 
 func Production(clusterType api.ClusterType, clusterName string) api.Cluster {
+	// TODO:
+	// - Safespring has 8 cores for the "extra-large" but here we have only 4
+	// - How many nodes with local storage do we need?
+
 	cluster := Default(clusterType, clusterName)
 
-	cluster.tfvars.MachinesSC = map[string]ExoscaleMachine{
-		// Masters ------------------------------------
-		"master-0": {
-			Machine: api.Machine{
-				NodeType: api.Master,
-				Size:     "Medium",
-			},
-		},
-		"master-1": {
-			Machine: api.Machine{
-				NodeType: api.Master,
-				Size:     "Medium",
-			},
-		},
-		"master-2": {
-			Machine: api.Machine{
-				NodeType: api.Master,
-				Size:     "Medium",
-			},
-		},
-		// Workers ------------------------------------
-		// TODO:
-		// - Safespring has 8 cores for the "extra-large" but here we have only 4
-		// - How many nodes with local storage do we need?
-		"worker-0": {
-			Machine: api.Machine{
-				NodeType: api.Worker,
-				Size:     "Extra-large",
-			},
-			ESLocalStorageCapacity: 0,
-		},
-		"worker-1": {
-			Machine: api.Machine{
-				NodeType: api.Worker,
-				Size:     "Large",
-			},
-			// Match ES_DATA_STORAGE_SIZE in config.sh
-			// Note that this value is in GB while config.sh uses Gi
-			ESLocalStorageCapacity: 140,
-		},
-		"worker-2": {
-			Machine: api.Machine{
-				NodeType: api.Worker,
-				Size:     "Large",
-			},
-			// Match ES_DATA_STORAGE_SIZE in config.sh
-			// Note that this value is in GB while config.sh uses Gi
-			ESLocalStorageCapacity: 140,
-		},
-		"worker-3": {
-			Machine: api.Machine{
-				NodeType: api.Worker,
-				Size:     "Large",
-			},
-			ESLocalStorageCapacity: 0,
-		},
+	cloudProvider := NewCloudProvider()
+
+	master, err := api.NewMachineFactory(
+		cloudProvider,
+		api.Master,
+		"Medium",
+	).Build()
+	if err != nil {
+		panic(err)
 	}
 
-	cluster.tfvars.MachinesWC = map[string]ExoscaleMachine{
-		// Masters ------------------------------------
-		"master-0": {
-			Machine: api.Machine{
-				NodeType: api.Master,
-				Size:     "Medium",
-			},
-		},
-		"master-1": {
-			Machine: api.Machine{
-				NodeType: api.Master,
-				Size:     "Medium",
-			},
-		},
-		"master-2": {
-			Machine: api.Machine{
-				NodeType: api.Master,
-				Size:     "Medium",
-			},
-		},
-		// Workers ------------------------------------
-		"worker-ck8s-0": {
-			Machine: api.Machine{
-				NodeType: api.Worker,
-				Size:     "Large",
-			},
-		},
-		"worker-0": {
-			Machine: api.Machine{
-				NodeType: api.Worker,
-				Size:     "Large",
-			},
-		},
-		"worker-1": {
-			Machine: api.Machine{
-				NodeType: api.Worker,
-				Size:     "Large",
-			},
-		},
-		"worker-2": {
-			Machine: api.Machine{
-				NodeType: api.Worker,
-				Size:     "Large",
-			},
-		},
+	workerExtraLargeSC, err := api.NewMachineFactory(
+		cloudProvider,
+		api.Worker,
+		"Extra-large",
+	).Build()
+	if err != nil {
+		panic(err)
+	}
+
+	workerLargeESSC, err := api.NewMachineFactory(
+		cloudProvider,
+		api.Worker,
+		"Large",
+	).WithProviderSettings(map[string]interface{}{
+		// Match ES_DATA_STORAGE_SIZE in config.sh
+		// Note that this value is in GB while config.sh uses Gi
+		"es_local_storage_capacity": 140,
+	}).Build()
+	if err != nil {
+		panic(err)
+	}
+
+	workerLargeSC, err := api.NewMachineFactory(
+		cloudProvider,
+		api.Worker,
+		"Large",
+	).Build()
+	if err != nil {
+		panic(err)
+	}
+
+	workerWC, err := api.NewMachineFactory(
+		cloudProvider,
+		api.Worker,
+		"Large",
+	).Build()
+	if err != nil {
+		panic(err)
+	}
+
+	cluster.tfvars.MachinesSC = map[string]*api.Machine{
+		"master-0": master,
+		"master-1": master,
+		"master-2": master,
+		"worker-0": workerExtraLargeSC,
+		"worker-1": workerLargeESSC,
+		"worker-2": workerLargeESSC,
+		"worker-3": workerLargeSC,
+	}
+
+	cluster.tfvars.MachinesWC = map[string]*api.Machine{
+		"master-0":      master,
+		"master-1":      master,
+		"master-2":      master,
+		"worker-ck8s-0": workerWC,
+		"worker-0":      workerWC,
+		"worker-1":      workerWC,
+		"worker-2":      workerWC,
 	}
 
 	cluster.tfvars.NFSSize = "Small"

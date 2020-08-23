@@ -2,6 +2,10 @@ package exoscale
 
 import "github.com/elastisys/ck8s/api"
 
+var supportedImages = []string{
+	"CK8S BaseOS v0.0.6",
+}
+
 var clusterFlavorMap = map[api.ClusterFlavor]func(api.ClusterType, string) api.Cluster{
 	FlavorDevelopment: Development,
 	FlavorProduction:  Production,
@@ -11,6 +15,10 @@ type CloudProvider struct{}
 
 func NewCloudProvider() *CloudProvider {
 	return &CloudProvider{}
+}
+
+func (e *CloudProvider) Type() api.CloudProviderType {
+	return api.Exoscale
 }
 
 func (e *CloudProvider) Flavors() (flavors []api.ClusterFlavor) {
@@ -46,4 +54,12 @@ func (e *CloudProvider) TerraformBackendConfig() *api.TerraformBackendConfig {
 	}
 	backendConfig.Workspaces.Prefix = "ck8s-exoscale-"
 	return backendConfig
+}
+
+func (e *CloudProvider) MachineImages(api.NodeType) []string {
+	return supportedImages
+}
+
+func (e *CloudProvider) MachineSettings() interface{} {
+	return &MachineSettings{}
 }

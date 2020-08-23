@@ -17,8 +17,7 @@ module "service_cluster" {
 
   machines = var.machines_sc
 
-  compute_instance_image = var.compute_instance_image
-  nfs_size               = var.nfs_size
+  nfs_size = var.nfs_size
 
   dns_suffix = "a1ck.io"
   dns_prefix = var.dns_prefix
@@ -46,8 +45,7 @@ module "workload_cluster" {
 
   machines = var.machines_wc
 
-  compute_instance_image = var.compute_instance_image
-  nfs_size               = var.nfs_size
+  nfs_size = var.nfs_size
 
   dns_suffix = "a1ck.io"
   dns_prefix = var.dns_prefix

@@ -43,7 +43,6 @@ module "master" {
     for name, machine in var.machines : name => machine
     if machine.node_type == "master"
   }
-  image_id = var.cluster_image
   key_pair = openstack_compute_keypair_v2.sshkey.id
 
   external_network_name = var.external_network_name
@@ -76,7 +75,6 @@ module "worker" {
     for name, machine in var.machines : name => machine
     if machine.node_type == "worker"
   }
-  image_id = var.cluster_image
   key_pair = openstack_compute_keypair_v2.sshkey.id
 
   external_network_name = var.external_network_name

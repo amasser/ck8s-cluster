@@ -2,6 +2,12 @@ package aws
 
 import "github.com/elastisys/ck8s/api"
 
+var supportedImages = map[string][]string{
+	"us-west-1": {
+		"ami-025fd2f1456a0e2e5",
+	},
+}
+
 var clusterFlavorMap = map[api.ClusterFlavor]func(api.ClusterType, string) api.Cluster{
 	FlavorDevelopment: Development,
 	FlavorProduction:  Production,
@@ -13,6 +19,10 @@ type CloudProvider struct{}
 // NewCloudProvider TODO
 func NewCloudProvider() *CloudProvider {
 	return &CloudProvider{}
+}
+
+func (e *CloudProvider) Type() api.CloudProviderType {
+	return api.AWS
 }
 
 // Flavors TODO
@@ -52,4 +62,13 @@ func (e *CloudProvider) TerraformBackendConfig() *api.TerraformBackendConfig {
 	}
 	backendConfig.Workspaces.Prefix = "ck8s-aws-"
 	return backendConfig
+}
+
+func (e *CloudProvider) MachineImages(api.NodeType) []string {
+	// TODO: Add support for multiple regions.
+	return supportedImages["us-west-1"]
+}
+
+func (e *CloudProvider) MachineSettings() interface{} {
+	return nil
 }

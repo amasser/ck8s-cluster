@@ -1,3 +1,10 @@
+data "openstack_images_image_v2" "image" {
+  for_each = var.machines
+
+  name        = each.value.image
+  most_recent = true
+}
+
 resource "openstack_networking_port_v2" "port" {
   for_each = var.machines
 
@@ -17,7 +24,7 @@ resource "openstack_compute_instance_v2" "instance" {
 
   name = "${var.prefix}-${each.key}"
 
-  image_id  = var.image_id
+  image_id  = data.openstack_images_image_v2.image[each.key].id
   flavor_id = each.value.size
   key_pair  = var.key_pair
 

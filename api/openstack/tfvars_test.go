@@ -8,28 +8,13 @@ import (
 	"github.com/elastisys/ck8s/api"
 )
 
-func TestCloneMachine(t *testing.T) {
-	testName := "foo"
-
-	type tfvarsPart struct {
-		NameSlice []string
-		SizeMap   map[string]string
-	}
-
+func TestAddMachine(t *testing.T) {
 	cluster := Default(-1, "", "testName")
 
-	cluster.TFVars.MachinesSC = map[string]api.Machine{
-		testName: {
-			NodeType: api.Master,
-			Size:     "a1093fde-0772-474b-aced-42a5a2d36814",
-		},
-	}
-
-	cluster.TFVars.MachinesWC = map[string]api.Machine{
-		testName: {
-			NodeType: api.Worker,
-			Size:     "3232fa6c-3af1-4608-b0f9-acce2415a7a8",
-		},
+	want := &api.Machine{
+		NodeType: api.Master,
+		Size:     "6d4ed3aa-396a-4005-a599-a3b1273c60ce",
+		Image:    "test",
 	}
 
 	for _, clusterType := range []api.ClusterType{
@@ -38,25 +23,65 @@ func TestCloneMachine(t *testing.T) {
 	} {
 		cluster.Config.ClusterType = clusterType
 
-		cloneName, err := cluster.CloneMachine(testName)
+		name, err := cluster.AddMachine("", want)
 		if err != nil {
 			t.Fatalf(
-				"error while cloning %s machine: %s",
+				"error while adding %s machine: %s",
 				clusterType.String(), err,
 			)
 		}
 
 		machines := cluster.Machines()
 
-		clonedMachine, ok := machines[cloneName]
+		got, ok := machines[name]
 		if !ok {
 			t.Errorf(
-				"cloned machine missing: %s", cloneName,
+				"machine missing: %s", name,
 			)
 		}
 
-		if diff := cmp.Diff(machines[testName], clonedMachine); diff != "" {
-			t.Errorf("clone mismatch (-want +got):\n%s", diff)
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("machine mismatch (-want +got):\n%s", diff)
+		}
+	}
+}
+
+func TestAddMachineWithName(t *testing.T) {
+	name := "foo"
+
+	cluster := Default(-1, "", "testName")
+
+	want := &api.Machine{
+		NodeType: api.Master,
+		Size:     "6d4ed3aa-396a-4005-a599-a3b1273c60ce",
+		Image:    "test",
+	}
+
+	for _, clusterType := range []api.ClusterType{
+		api.ServiceCluster,
+		api.WorkloadCluster,
+	} {
+		cluster.Config.ClusterType = clusterType
+
+		_, err := cluster.AddMachine(name, want)
+		if err != nil {
+			t.Fatalf(
+				"error while adding %s machine: %s",
+				clusterType.String(), err,
+			)
+		}
+
+		machines := cluster.Machines()
+
+		got, ok := machines[name]
+		if !ok {
+			t.Errorf(
+				"machine missing: %s", name,
+			)
+		}
+
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("machine mismatch (-want +got):\n%s", diff)
 		}
 	}
 }
@@ -68,13 +93,13 @@ func TestRemoveMachine(t *testing.T) {
 	want := Default(-1, api.CityCloud, "testName")
 
 	got.TFVars = TFVars{
-		MachinesSC: map[string]api.Machine{
+		MachinesSC: map[string]*api.Machine{
 			testName: {
 				NodeType: api.Master,
 				Size:     "a1093fde-0772-474b-aced-42a5a2d36814",
 			},
 		},
-		MachinesWC: map[string]api.Machine{
+		MachinesWC: map[string]*api.Machine{
 			testName: {
 				NodeType: api.Worker,
 				Size:     "3232fa6c-3af1-4608-b0f9-acce2415a7a8",
@@ -83,8 +108,8 @@ func TestRemoveMachine(t *testing.T) {
 	}
 
 	want.TFVars = TFVars{
-		MachinesSC: map[string]api.Machine{},
-		MachinesWC: map[string]api.Machine{},
+		MachinesSC: map[string]*api.Machine{},
+		MachinesWC: map[string]*api.Machine{},
 	}
 
 	for _, clusterType := range []api.ClusterType{

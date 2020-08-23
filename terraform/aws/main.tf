@@ -20,8 +20,6 @@ module "service_cluster" {
   prefix = local.prefix_sc
 
   aws_region = var.region
-  master_ami = var.aws_amis["sc_master"]
-  worker_ami = var.aws_amis["sc_worker"]
 
   public_ingress_cidr_whitelist = var.public_ingress_cidr_whitelist
   api_server_whitelist          = var.api_server_whitelist
@@ -38,8 +36,6 @@ module "workload_cluster" {
   prefix = local.prefix_wc
 
   aws_region = var.region
-  master_ami = var.aws_amis["wc_master"]
-  worker_ami = var.aws_amis["wc_worker"]
 
   public_ingress_cidr_whitelist = var.public_ingress_cidr_whitelist
   api_server_whitelist          = var.api_server_whitelist

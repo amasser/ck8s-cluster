@@ -19,9 +19,12 @@ import (
 func TestRenderAnsibleInventory(t *testing.T) {
 	type testCase struct {
 		ansibleInventoryPath string
-		tfVarsPath           string
-		terraformOutputPath  string
-		cluster              api.Cluster
+		// TODO: Currently the only reason we need tfvars for the Ansible
+		// inventory is the cloud provider vars in citycloud. Let's try to get
+		// rid of that.
+		tfVarsPath          string
+		terraformOutputPath string
+		cluster             api.Cluster
 	}
 
 	testCases := []testCase{{
@@ -73,7 +76,15 @@ func TestRenderAnsibleInventory(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if err := json.Unmarshal(tfvarsData, tc.cluster.TFVars()); err != nil {
+		cloudProvider, err := CloudProviderFromType(tc.cluster.CloudProvider())
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := api.DecodeTFVars(
+			cloudProvider,
+			tfvarsData,
+			tc.cluster,
+		); err != nil {
 			t.Fatal(err)
 		}
 
