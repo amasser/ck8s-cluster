@@ -14,6 +14,8 @@
 
 - Bug where tfe provider do not read the configured value in backend_config.hcl
 - Bug where folders where not created before uploading crds
+- Missing join-cluster Ansible playbook path which caused node replacement and
+  cloning to fail.
 
 ### Changed
 

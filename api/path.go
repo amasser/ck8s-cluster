@@ -105,6 +105,9 @@ var relativeCodePaths = CodePath{
 	AnsiblePlaybookInfrustructureFiles: {
 		"ansible/infrastructure.yml", "yaml",
 	},
+	AnsiblePlaybookJoinClusterFile: {
+		"ansible/join-cluster.yml", "yaml",
+	},
 	ManageS3BucketsScriptFile: {
 		"scripts/manage-s3-buckets.sh", "",
 	},
