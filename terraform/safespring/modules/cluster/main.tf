@@ -1,9 +1,15 @@
+locals {
+  subnet_cidr = "172.16.0.0/24"
+}
+
 module "network" {
   source = "../../../modules/openstack/network"
 
   prefix = var.prefix
 
   external_network_id = var.external_network_id
+
+  subnet_cidr = local.subnet_cidr
 }
 
 module "secgroups" {

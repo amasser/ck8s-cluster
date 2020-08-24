@@ -20,3 +20,4 @@
 - tfvars configuration language from HCL to JSON.
 - all commands that previously required node type as an argument no longer do,
   only node name is now needed (e.g. `drain master foo` -> `drain foo`).
+- Citycloud: Api server white list is applied to api server loadbalancer now as well as the VMs.

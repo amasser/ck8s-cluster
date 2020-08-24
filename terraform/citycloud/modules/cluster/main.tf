@@ -1,9 +1,15 @@
+locals {
+  subnet_cidr = "172.16.0.0/24"
+}
+
 module "network" {
   source = "../../../modules/openstack/network"
 
   prefix = var.prefix
 
   external_network_id = var.external_network_id
+
+  subnet_cidr = local.subnet_cidr
 }
 
 module "secgroups" {
@@ -103,6 +109,7 @@ module "octavia_lb" {
       health_delay       = 20
       health_timeout     = 10
       health_max_retries = 5
+      allowed_cidrs      = []
     }
     https = {
       port               = 443
@@ -113,6 +120,7 @@ module "octavia_lb" {
       health_delay       = 20
       health_timeout     = 10
       health_max_retries = 5
+      allowed_cidrs      = []
     }
     kube_api = {
       port               = 6443
@@ -123,6 +131,7 @@ module "octavia_lb" {
       health_delay       = 20
       health_timeout     = 10
       health_max_retries = 5
+      allowed_cidrs      = concat(var.api_server_whitelist, [local.subnet_cidr])
     }
   }
 

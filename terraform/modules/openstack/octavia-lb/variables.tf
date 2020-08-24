@@ -21,6 +21,7 @@ variable loadbalancer_targets {
     target_ips = map(object({
       private_ip = string
     }))
+    allowed_cidrs = list(string)
   }))
 
   ## Example
@@ -34,6 +35,7 @@ variable loadbalancer_targets {
   #     health_delay       = 20
   #     health_timeout     = 10
   #     health_max_retries = 5
+  #     allowed_cidrs      = []
   #   }
   #   kube_api = {
   #     port               = 6443
@@ -44,6 +46,7 @@ variable loadbalancer_targets {
   #     health_delay       = 20
   #     health_timeout     = 10
   #     health_max_retries = 5
+  #     allowed_cidrs      = ["1.2.3.0/24", "11.22.0.0/16"]
   #   }
   # }
 }
