@@ -22,20 +22,23 @@ variable loadbalancer_targets {
       private_ip = string
     }))
     allowed_cidrs = list(string)
+    #Timeout in milliseconds
+    timeout_client_data = number
   }))
 
   ## Example
   # default = {
   #   http = {
-  #     port               = 80
-  #     protocol           = "HTTP"
-  #     target_ips         = { "worker-0" = { "private_ip" = "127.0.0.1" } }
-  #     health_path        = "/healthz"
-  #     health_codes       = "200"
-  #     health_delay       = 20
-  #     health_timeout     = 10
-  #     health_max_retries = 5
-  #     allowed_cidrs      = []
+  #     port                = 80
+  #     protocol            = "HTTP"
+  #     target_ips          = { "worker-0" = { "private_ip" = "127.0.0.1" } }
+  #     health_path         = "/healthz"
+  #     health_codes        = "200"
+  #     health_delay        = 20
+  #     health_timeout      = 10
+  #     health_max_retries  = 5
+  #     allowed_cidrs       = []
+  #     timeout_client_data = 50000
   #   }
   #   kube_api = {
   #     port               = 6443
@@ -47,6 +50,7 @@ variable loadbalancer_targets {
   #     health_timeout     = 10
   #     health_max_retries = 5
   #     allowed_cidrs      = ["1.2.3.0/24", "11.22.0.0/16"]
+  #     timeout_client_data = 600000
   #   }
   # }
 }

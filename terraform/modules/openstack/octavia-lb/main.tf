@@ -54,13 +54,14 @@ resource "openstack_lb_pool_v2" "loadbalancer_pool" {
 }
 
 resource "openstack_lb_listener_v2" "loadbalancer_listener" {
-  for_each        = local.loadbalancer_pools
-  name            = each.key
-  protocol        = each.value.target.protocol
-  protocol_port   = each.value.target.port
-  loadbalancer_id = openstack_lb_loadbalancer_v2.loadbalancer.id
-  default_pool_id = openstack_lb_pool_v2.loadbalancer_pool[each.key].id
-  allowed_cidrs   = each.value.target.allowed_cidrs
+  for_each            = local.loadbalancer_pools
+  name                = each.key
+  protocol            = each.value.target.protocol
+  protocol_port       = each.value.target.port
+  loadbalancer_id     = openstack_lb_loadbalancer_v2.loadbalancer.id
+  default_pool_id     = openstack_lb_pool_v2.loadbalancer_pool[each.key].id
+  allowed_cidrs       = each.value.target.allowed_cidrs
+  timeout_client_data = each.value.target.timeout_client_data
 }
 
 resource "openstack_lb_member_v2" "pool_member" {

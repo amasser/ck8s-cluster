@@ -101,37 +101,40 @@ module "octavia_lb" {
 
   loadbalancer_targets = {
     http = {
-      port               = 80
-      protocol           = "HTTP"
-      target_ips         = module.worker.instance_ips
-      health_path        = "/healthz"
-      health_codes       = "200"
-      health_delay       = 20
-      health_timeout     = 10
-      health_max_retries = 5
-      allowed_cidrs      = []
+      port                = 80
+      protocol            = "HTTP"
+      target_ips          = module.worker.instance_ips
+      health_path         = "/healthz"
+      health_codes        = "200"
+      health_delay        = 20
+      health_timeout      = 10
+      health_max_retries  = 5
+      allowed_cidrs       = []
+      timeout_client_data = 50000
     }
     https = {
-      port               = 443
-      protocol           = "HTTPS"
-      target_ips         = module.worker.instance_ips
-      health_path        = "/healthz"
-      health_codes       = "200"
-      health_delay       = 20
-      health_timeout     = 10
-      health_max_retries = 5
-      allowed_cidrs      = []
+      port                = 443
+      protocol            = "HTTPS"
+      target_ips          = module.worker.instance_ips
+      health_path         = "/healthz"
+      health_codes        = "200"
+      health_delay        = 20
+      health_timeout      = 10
+      health_max_retries  = 5
+      allowed_cidrs       = []
+      timeout_client_data = 50000
     }
     kube_api = {
-      port               = 6443
-      protocol           = "TCP"
-      target_ips         = module.master.instance_ips
-      health_path        = "ignore"
-      health_codes       = "ignore"
-      health_delay       = 20
-      health_timeout     = 10
-      health_max_retries = 5
-      allowed_cidrs      = concat(var.api_server_whitelist, [local.subnet_cidr])
+      port                = 6443
+      protocol            = "TCP"
+      target_ips          = module.master.instance_ips
+      health_path         = "ignore"
+      health_codes        = "ignore"
+      health_delay        = 20
+      health_timeout      = 10
+      health_max_retries  = 5
+      allowed_cidrs       = concat(var.api_server_whitelist, [local.subnet_cidr])
+      timeout_client_data = 600000
     }
   }
 
