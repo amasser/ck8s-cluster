@@ -16,6 +16,9 @@
 - Bug where folders where not created before uploading crds
 - Missing join-cluster Ansible playbook path which caused node replacement and
   cloning to fail.
+- The Terraform plan diff check to also include the case where a plan is being
+  caused by data sources with depends_on but no actual change occured. This
+  currently happens for the Exoscale provider.
 
 ### Changed
 

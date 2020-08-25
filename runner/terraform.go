@@ -1,9 +1,11 @@
 package runner
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"io"
+	"io/ioutil"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -118,7 +120,25 @@ func (t *Terraform) PlanNoDiff() error {
 
 	cmd := t.command(args...)
 
+	// A second diff check, which looks for "0 to add, 0 to change, 0 to
+	// destroy", is required since data sources with a `depends_on` is always
+	// evaluated even though no diff actually exist. This seems to be fixed in
+	// Terraform v0.13.
+	/// https://github.com/hashicorp/terraform/issues/11806
+	// TOOD: Remove output handler and second diff check when we have upgraded
+	// to Terraform v0.13.
+	var output []byte
+	cmd.OutputHandler = func(stdout, stderr io.Reader) error {
+		var err error
+		output, err = ioutil.ReadAll(stdout)
+		return err
+	}
 	cmd.ExitCodeHandlers[2] = func() error {
+		secondDiffCheck := []byte("0 to add, 0 to change, 0 to destroy")
+		if bytes.Index(output, secondDiffCheck) != -1 {
+			return nil
+		}
+
 		return TerraformPlanDiffErr
 	}
 
