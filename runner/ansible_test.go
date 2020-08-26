@@ -16,7 +16,6 @@ var (
 		PlaybookPathJoinCluster:      "joincluster",
 
 		KubeconfigPath: "kubeconfig",
-		CRDFilePath:    "crd",
 
 		Env: map[string]string{},
 	}
@@ -33,7 +32,6 @@ func TestAnsibleDeployKubernetes(t *testing.T) {
 		"ansible-playbook",
 		"-i", testAnsibleConfig.InventoryPath,
 		"--extra-vars", "kubeconfig_path="+testAnsibleConfig.KubeconfigPath,
-		"--extra-vars", "crd_file_path="+testAnsibleConfig.CRDFilePath,
 		testAnsibleConfig.PlaybookPathDeployKubernetes,
 	)
 	wantCmd.Env = map[string]string{

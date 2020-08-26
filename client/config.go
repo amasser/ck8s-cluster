@@ -237,7 +237,6 @@ func (c *ConfigHandler) AnsibleRunnerConfig(
 		PlaybookPathJoinCluster:      c.codePath[api.AnsiblePlaybookJoinClusterFile].Path,
 
 		KubeconfigPath: c.configPath[api.KubeconfigFile].Path,
-		CRDFilePath:    c.codePath[api.CRDFile].Path,
 
 		Env: cluster.AnsibleEnv(),
 	}

@@ -4,4 +4,3 @@
   vars:
     kubeconfig_path: "{{ kubeconfig_path | default('kubeconfig.yaml') }}"
 - import_playbook: join-cluster.yml
-- import_playbook: bootstrap-crds.yml

@@ -22,3 +22,4 @@
   only node name is now needed (e.g. `drain master foo` -> `drain foo`).
 - Citycloud: Api server white list is applied to api server loadbalancer now as well as the VMs.
 - Increases timeout for api server loadbalancer to 10m
+- Removed CRDs. These will be installed from the apps repository instead.

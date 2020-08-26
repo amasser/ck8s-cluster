@@ -14,7 +14,6 @@ type AnsibleConfig struct {
 	PlaybookPathJoinCluster      string
 
 	KubeconfigPath string
-	CRDFilePath    string
 
 	Env map[string]string
 }
@@ -73,7 +72,6 @@ func (a *Ansible) DeployKubernetes() error {
 	return a.runner.Run(a.playbook(
 		a.config.PlaybookPathDeployKubernetes,
 		"--extra-vars", "kubeconfig_path="+a.config.KubeconfigPath,
-		"--extra-vars", "crd_file_path="+a.config.CRDFilePath,
 	))
 }
 

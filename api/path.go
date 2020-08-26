@@ -55,7 +55,6 @@ const (
 	AnsiblePlaybookJoinClusterFile
 	AnsiblePlaybookInfrustructureFiles
 	ManageS3BucketsScriptFile
-	CRDFile
 	TerraformTFEDir
 	// TODO: Would be nice to get rid of this and only have one single main
 	//		 Terraform module.
@@ -126,15 +125,6 @@ var relativeCodePaths = CodePath{
 	},
 }
 
-var clusterSpecificRelativeCodePaths = map[ClusterType]CodePath{
-	ServiceCluster: {
-		CRDFile: {"crds/crds-sc.txt", ""},
-	},
-	WorkloadCluster: {
-		CRDFile: {"crds/crds-wc.txt", ""},
-	},
-}
-
 func NewConfigPath(configRootPath string, clusterType ClusterType) ConfigPath {
 	configPath := make(
 		ConfigPath,
@@ -157,14 +147,8 @@ func NewConfigPath(configRootPath string, clusterType ClusterType) ConfigPath {
 }
 
 func NewCodePath(codeRootPath string, clusterType ClusterType) CodePath {
-	codePath := make(CodePath, len(relativeCodePaths)+len(clusterSpecificRelativeCodePaths))
+	codePath := make(CodePath, len(relativeCodePaths))
 	for id, p := range relativeCodePaths {
-		codePath[id] = Path{
-			Path:   path.Join(codeRootPath, p.Path),
-			Format: p.Format,
-		}
-	}
-	for id, p := range clusterSpecificRelativeCodePaths[clusterType] {
 		codePath[id] = Path{
 			Path:   path.Join(codeRootPath, p.Path),
 			Format: p.Format,
