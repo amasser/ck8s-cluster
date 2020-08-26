@@ -19,6 +19,8 @@
 - The Terraform plan diff check to also include the case where a plan is being
   caused by data sources with depends_on but no actual change occured. This
   currently happens for the Exoscale provider.
+- Interactive runs with SSH commands (e.g. kubeadm reset) not working properly
+  due to stdin being blocked after the SSH session closed.
 
 ### Changed
 
