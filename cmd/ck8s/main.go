@@ -13,6 +13,7 @@ import (
 
 	"github.com/elastisys/ck8s/api"
 	"github.com/elastisys/ck8s/client"
+	"github.com/elastisys/ck8s/runner"
 )
 
 var version = "dev"
@@ -193,11 +194,16 @@ func newClusterClient(
 		return nil, fmt.Errorf("error reading config path: %w", err)
 	}
 
+	silent := viper.GetBool(silentFlag)
+
+	localRunner := runner.NewLocalRunner(logger, silent)
+
 	return client.NewClusterClient(
 		logger,
 		cluster,
 		configHandler,
-		viper.GetBool(silentFlag),
+		localRunner,
+		silent,
 		viper.GetBool(autoApproveFlag),
 	)
 }

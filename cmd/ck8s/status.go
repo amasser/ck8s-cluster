@@ -96,14 +96,14 @@ func statusSSH(
 ) error {
 	var errChain error
 
-	currentMachines, err := clusterClient.CurrentMachines()
+	currentMachines, err := clusterClient.Machines()
 	if err != nil {
 		return fmt.Errorf("error getting machines: %s", err)
 	}
 
 	timeout := viper.GetDuration(sshTimeoutFlag)
 
-	for name, machine := range clusterClient.DesiredMachines() {
+	for name, machine := range clusterClient.ConfiguredMachines() {
 		machineState, ok := currentMachines[name]
 		if !ok {
 			printMachineStatus("SSH", name, machine, false)
@@ -138,7 +138,7 @@ func statusNode(
 ) error {
 	var errChain error
 
-	for name, machine := range clusterClient.DesiredMachines() {
+	for name, machine := range clusterClient.ConfiguredMachines() {
 		if machine.NodeType == api.Worker || machine.NodeType == api.Master {
 			exists, err := clusterClient.NodeExists(name)
 			if err != nil {

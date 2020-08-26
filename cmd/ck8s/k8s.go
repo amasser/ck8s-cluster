@@ -129,7 +129,7 @@ func addNode(
 		}
 	}
 
-	name, machine, err := clusterClient.AddNode(
+	name, err := clusterClient.AddMachine(
 		viper.GetString(nameFlag),
 		api.NodeType(args[0]),
 		args[1],
@@ -137,10 +137,15 @@ func addNode(
 		providerSettings,
 	)
 	if err != nil {
-		return fmt.Errorf("error adding node: %s", err)
+		return fmt.Errorf("error adding machine to configuration: %s", err)
 	}
 
-	printMachine(name, machine)
+	machineState, err := clusterClient.Join(name)
+	if err != nil {
+		return fmt.Errorf("error joining node: %s", err)
+	}
+
+	printMachine(name, machineState)
 
 	return nil
 }
@@ -153,7 +158,7 @@ func resetNode(
 	name := args[0]
 
 	if err := clusterClient.ResetNode(name); err != nil {
-		return fmt.Errorf("error draining node: %s", err)
+		return fmt.Errorf("error resetting node: %s", err)
 	}
 	return nil
 }
@@ -165,12 +170,17 @@ func cloneNode(
 ) error {
 	name := args[0]
 
-	cloneName, cloneMachine, err := clusterClient.CloneNode(name)
+	cloneName, err := clusterClient.CloneMachine(name)
 	if err != nil {
-		return fmt.Errorf("error cloning node: %s", err)
+		return fmt.Errorf("error cloning machine in configuration: %s", err)
 	}
 
-	printMachine(cloneName, cloneMachine)
+	machineState, err := clusterClient.Join(cloneName)
+	if err != nil {
+		return fmt.Errorf("error joining node: %s", err)
+	}
+
+	printMachine(cloneName, machineState)
 
 	return nil
 }
@@ -195,12 +205,21 @@ func replaceNode(
 ) error {
 	name := args[0]
 
-	cloneName, cloneMachine, err := clusterClient.ReplaceNode(name)
+	cloneName, err := clusterClient.CloneMachine(name)
 	if err != nil {
-		return fmt.Errorf("error replacing node: %s", err)
+		return fmt.Errorf("error cloning machine in configuration: %s", err)
 	}
 
-	printMachine(cloneName, cloneMachine)
+	machineState, err := clusterClient.Join(cloneName)
+	if err != nil {
+		return fmt.Errorf("error joining node: %s", err)
+	}
+
+	if err := clusterClient.RemoveNode(name); err != nil {
+		return fmt.Errorf("error removing node: %s", err)
+	}
+
+	printMachine(cloneName, machineState)
 
 	return nil
 }

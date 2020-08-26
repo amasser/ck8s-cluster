@@ -61,7 +61,7 @@ func machineGet(
 ) error {
 	name := args[0]
 
-	machine, err := clusterClient.CurrentMachine(name)
+	machine, err := clusterClient.Machine(name)
 	if err != nil {
 		return fmt.Errorf("error getting machine: %s", err)
 	}
@@ -78,7 +78,7 @@ func machineList(
 ) error {
 	nodeType := api.NodeType(viper.GetString(nodeTypeFlag))
 
-	machines, err := clusterClient.CurrentMachines()
+	machines, err := clusterClient.Machines()
 	if err != nil {
 		return fmt.Errorf("error listing machines: %s", err)
 	}
@@ -101,7 +101,7 @@ func machineSSH(
 ) error {
 	name := args[0]
 
-	machine, err := clusterClient.CurrentMachine(name)
+	machine, err := clusterClient.Machine(name)
 	if err != nil {
 		return fmt.Errorf("error getting machine: %w", err)
 	}
