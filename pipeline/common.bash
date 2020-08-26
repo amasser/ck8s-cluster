@@ -30,6 +30,6 @@ whitelist_update() {
         exit 1
     fi
 
-    sed -i ':a;N;$!ba;s/'"${1}"'\s*= \[[^]]*\]/'"${1}"' = \["'${2}'\/32"\]/g' \
-      "${CK8S_CONFIG_PATH}/config.tfvars"
+    sed -i ':a;N;$!ba;s/\s*"'"${1}"'": \[[^]]*\]/"'"${1}"'": \["'${2}'\/32"\]/g' \
+      "${CK8S_CONFIG_PATH}/tfvars.json"
 }
