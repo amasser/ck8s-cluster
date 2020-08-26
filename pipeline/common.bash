@@ -7,19 +7,6 @@ get_my_ip() {
     curl ifconfig.me 2>/dev/null
 }
 
-config_update() {
-    sed -i 's/'"${1}"'=".*"/'"${1}"'="'"${2}"'"/g' \
-        "${CK8S_CONFIG_PATH}/config.sh"
-}
-
-secrets_update() {
-    secrets_env="${CK8S_CONFIG_PATH}/secrets.env"
-    sops --config "${CK8S_CONFIG_PATH}/.sops.yaml" -d -i "${secrets_env}"
-    sed -i 's/'"${1}"'=.*/'"${1}"'='"${2}"'/g' "${secrets_env}"
-    sops --config "${CK8S_CONFIG_PATH}/.sops.yaml" -e -i "${secrets_env}"
-
-}
-
 whitelist_update() {
     #usage: whitelist_update variable-name ip-address
     #regex https://www.regextester.com/22
