@@ -1,9 +1,9 @@
 #!/bin/bash
 
 set -e
-if [ "$#" -ne 1 -o "$1" != "positive" -a "$1" != "negative" ]
+if [ "$#" -ne 1 ] || ( [ "$1" != "positive" ] && [ "$1" != "negative" ] && [ "$1" != "startup" ] && [ "$1" != "cleanup" ] )
 then
-    >&2 echo "Usage: nodeport-whitelist.sh <positive | negative>"
+    >&2 echo "Usage: nodeport-whitelist.sh <positive | negative | startup | cleanup>"
     exit 1
 fi
 
@@ -11,32 +11,28 @@ test_type=$1
 here="$(dirname "$(readlink -f "$0")")"
 ck8s="${here}/../../../bin/ck8s"
 source "${here}/../../common.bash"
-source "${here}/../../../bin/common.bash"
+
 failures=0
 success=0
-infra="${config[infrastructure_file]}"
-echo "==============================="
-echo "Testing nodeport whitelisting"
-echo "==============================="
 
 startup(){
-    $ck8s ops kubectl sc apply -f "${here}/../pipeline/test/infrastructure/nginx-whitelisttest.yaml"
-    $ck8s ops kubectl wc apply -f "${here}/../pipeline/test/infrastructure/nginx-whitelisttest.yaml"
-    $ck8s ops kubectl sc -n ck8s-nodeport-test wait --for=condition=Available deploy/nginx-deployment \
+    ckctl internal kubectl --cluster sc -- apply -f "${here}/nginx-whitelisttest.yaml"
+    ckctl internal kubectl --cluster wc -- apply -f "${here}/nginx-whitelisttest.yaml"
+    ckctl internal kubectl --cluster sc -- -n ck8s-nodeport-test wait --for=condition=Available deploy/nginx-deployment \
         --timeout=5m
-    $ck8s ops kubectl wc -n ck8s-nodeport-test wait --for=condition=Available deploy/nginx-deployment \
+    ckctl internal kubectl --cluster wc -- -n ck8s-nodeport-test wait --for=condition=Available deploy/nginx-deployment \
         --timeout=5m
 }
 
 cleanup() {
-    $ck8s ops kubectl sc delete -f "${here}/../pipeline/test/infrastructure/nginx-whitelisttest.yaml"
-    $ck8s ops kubectl wc delete -f "${here}/../pipeline/test/infrastructure/nginx-whitelisttest.yaml"
+    ckctl internal kubectl --cluster sc -- delete -f "${here}/nginx-whitelisttest.yaml"
+    ckctl internal kubectl --cluster wc -- delete -f "${here}/nginx-whitelisttest.yaml"
 }
 
 check_nodeport_whitelist() {
   prefix=$1
   type=$2
-  host_addresses=($(cat $infra | jq -r ".${prefix}.worker_ip_addresses[].public_ip" ))
+  host_addresses=($(cat ${CK8S_CONFIG_PATH}/.state/infra.json | jq -r ".${prefix}.worker_ip_addresses[].public_ip" ))
   for host in "${host_addresses[@]}"
   do
       if [[ -n $(curl -I http://${host}:32116 -ks --max-time 5) ]]; then
@@ -56,24 +52,29 @@ check_nodeport_whitelist() {
 }
 
 #As there is a bug in kubernetes where resourses is not resleased straight away. https://github.com/kubernetes/kubernetes/issues/32987
-#This means that startup is only done by positive to ensure that it works. Meaning that the negative tests have something to test against aswell.
-if [[ "$test_type" == "positive" ]]; then
+#This means that startup is only done by negative to ensure that it works. Meaning that the positive tests have something to test against aswell.
+if [[ "$test_type" == "startup" ]]; then
     startup 
-fi
-check_nodeport_whitelist service_cluster "$test_type"
-check_nodeport_whitelist workload_cluster "$test_type"
-if [[ "$test_type" == "negative" ]]; then
+elif [[ "$test_type" == "cleanup" ]]; then
     cleanup 
-fi
+elif [[ "$test_type" == "negative" ]] || [[ "$test_type" == "positive" ]]; then
+    echo "==============================="
+    echo "Testing nodeport whitelisting"
+    echo "==============================="
 
-echo "==============================="
-echo "Nodeport whitelist test result"
-echo "===============================" 
-echo "Successes: $success"
-echo "Failures: $failures"
+    check_nodeport_whitelist service_cluster "$test_type"
+    check_nodeport_whitelist workload_cluster "$test_type"
 
-if [ $failures -gt 0 ]
-then
-    echo "Nodeport whitelist testing failed"
-    exit 1
+    echo "==============================="
+    echo "Nodeport whitelist test result"
+    echo "===============================" 
+    echo "Successes: $success"
+    echo "Failures: $failures"
+
+    if [ $failures -gt 0 ]
+    then
+        echo "Nodeport whitelist testing failed"
+        exit 1
+    fi
+
 fi

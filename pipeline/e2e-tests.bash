@@ -11,7 +11,9 @@ source "${here}/common.bash"
 
 "${test_path}/infrastructure/s3-buckets.sh"
 
-# Test API server whitelist
+# Test whitelisting
+
+"${test_path}/infrastructure/nodeport-whitelist.sh" startup
 
 # TODO: Would be nice to replace this with something like:
 #       ckctl whitelist [--ingress] [--kubernetes] CIDR
@@ -21,6 +23,7 @@ whitelist_update nodeport_whitelist 127.0.0.1
 ckctl internal terraform apply --cluster sc
 ckctl internal terraform apply --cluster wc
 
+"${test_path}/infrastructure/nodeport-whitelist.sh" negative
 "${test_path}/infrastructure/whitelist.sh" negative
 
 my_ip=$(get_my_ip)
@@ -30,7 +33,9 @@ whitelist_update nodeport_whitelist "${my_ip}"
 ckctl internal terraform apply --cluster sc
 ckctl internal terraform apply --cluster wc
 
+"${test_path}/infrastructure/nodeport-whitelist.sh" positive
 "${test_path}/infrastructure/whitelist.sh" positive
+"${test_path}/infrastructure/nodeport-whitelist.sh" cleanup
 
 # Run smoke tests (simple deployment and LoadBalancer on supported cloud providers)
 # We only run this on WC as SC is thoroughly tested from all apps deployed there.
