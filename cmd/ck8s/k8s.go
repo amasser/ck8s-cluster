@@ -24,47 +24,40 @@ func init() {
 1. Adding the machine in the tfvars configuration and running terraform apply.
 2. Joining the new node to the Kubernetes cluster.`,
 		Args: ExactArgs(2),
+		PreRun: func(cmd *cobra.Command, args []string) {
+			viper.BindPFlag(nameFlag, cmd.Flags().Lookup(nameFlag))
+			viper.BindPFlag(imageFlag, cmd.Flags().Lookup(imageFlag))
+			viper.BindPFlag(
+				esLocalStorageCapacityFlag,
+				cmd.Flags().Lookup(esLocalStorageCapacityFlag),
+			)
+		},
 		RunE: withClusterClient(addNode),
 	}
-	addCmd.Flags().String(
-		nameFlag,
-		"",
-		"set name",
-	)
-	viper.BindPFlag(
-		nameFlag,
-		addCmd.Flags().Lookup(nameFlag),
-	)
-	addCmd.Flags().String(
-		imageFlag,
-		"",
-		"set image",
-	)
-	viper.BindPFlag(
-		imageFlag,
-		addCmd.Flags().Lookup(imageFlag),
-	)
+	addCmd.Flags().String(nameFlag, "", "set name")
+	addCmd.Flags().String(imageFlag, "", "set image")
 	addCmd.Flags().Float64(
 		esLocalStorageCapacityFlag,
 		0,
 		"set reserved local storage for Elasticsearch (Exoscale only)",
 	)
-	viper.BindPFlag(
-		esLocalStorageCapacityFlag,
-		addCmd.Flags().Lookup(esLocalStorageCapacityFlag),
-	)
 	rootCmd.AddCommand(addCmd)
 
-	rootCmd.AddCommand(&cobra.Command{
+	cloneCmd := &cobra.Command{
 		Use:   "clone NODE_NAME",
 		Short: "Clone a Kubernetes node",
 		Long: `This command will clone a Kubernetes node by:
 1. Cloning the machine in the tfvars configuration and running terraform
-   apply.
+   apply. Optionally with a different image.
 2. Joining the new node to the Kubernetes cluster.`,
 		Args: ExactArgs(1),
+		PreRun: func(cmd *cobra.Command, args []string) {
+			viper.BindPFlag(imageFlag, cmd.Flags().Lookup(imageFlag))
+		},
 		RunE: withClusterClient(cloneNode),
-	})
+	}
+	cloneCmd.Flags().String(imageFlag, "", "set image")
+	rootCmd.AddCommand(cloneCmd)
 
 	rootCmd.AddCommand(&cobra.Command{
 		Use:   "drain NODE_NAME",
@@ -95,12 +88,12 @@ machine by:
 		RunE: withClusterClient(removeNode),
 	})
 
-	rootCmd.AddCommand(&cobra.Command{
+	replaceCmd := &cobra.Command{
 		Use:   "replace NODE_NAME",
 		Short: "Replace a Kubernetes node",
 		Long: `This command replaces a Kubernetes cluster node by:
 1. Cloning the machine in the tfvars configuration and running terraform
-   apply.
+   apply. Optionally with a different image.
 2. Joining the new node to the Kubernetes cluster.
 3. Draining the old node.
 3. Running kubeadm reset on old machine.
@@ -110,8 +103,13 @@ machine by:
 This useful when, for example, the Kubernetes cluster needs to be updated
 gracefully by performing a rolling upgrade.`,
 		Args: ExactArgs(1),
+		PreRun: func(cmd *cobra.Command, args []string) {
+			viper.BindPFlag(imageFlag, cmd.Flags().Lookup(imageFlag))
+		},
 		RunE: withClusterClient(replaceNode),
-	})
+	}
+	replaceCmd.Flags().String(imageFlag, "", "set image")
+	rootCmd.AddCommand(replaceCmd)
 }
 
 func addNode(
@@ -170,7 +168,10 @@ func cloneNode(
 ) error {
 	name := args[0]
 
-	cloneName, err := clusterClient.CloneMachine(name)
+	cloneName, err := clusterClient.CloneMachine(
+		name,
+		viper.GetString(imageFlag),
+	)
 	if err != nil {
 		return fmt.Errorf("error cloning machine in configuration: %s", err)
 	}
@@ -205,7 +206,10 @@ func replaceNode(
 ) error {
 	name := args[0]
 
-	cloneName, err := clusterClient.CloneMachine(name)
+	cloneName, err := clusterClient.CloneMachine(
+		name,
+		viper.GetString(imageFlag),
+	)
 	if err != nil {
 		return fmt.Errorf("error cloning machine in configuration: %s", err)
 	}

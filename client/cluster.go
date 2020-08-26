@@ -332,10 +332,14 @@ func (c *ClusterClient) AddMachine(
 	return c.cluster.AddMachine(name, machine)
 }
 
-func (c *ClusterClient) CloneMachine(name string) (string, error) {
+func (c *ClusterClient) CloneMachine(
+	name string,
+	image string,
+) (string, error) {
 	c.logger.Info(
 		"client_machine_clone",
 		zap.String("name", name),
+		zap.String("image", image),
 	)
 
 	if err := c.TerraformPlanNoDiff(); err != nil {
@@ -347,6 +351,23 @@ func (c *ClusterClient) CloneMachine(name string) (string, error) {
 		return "", fmt.Errorf(
 			"error machine not found: %s", name,
 		)
+	}
+
+	if image != "" {
+		cloudProvider, err := CloudProviderFromType(c.cluster.CloudProvider())
+		if err != nil {
+			return "", err
+		}
+
+		machineFactory := api.NewMachineFactoryFromExistingMachine(
+			cloudProvider,
+			machine,
+		)
+
+		machine, err = machineFactory.WithImage(image).Build()
+		if err != nil {
+			return "", fmt.Errorf("error building machine: %w", err)
+		}
 	}
 
 	return c.cluster.AddMachine("", machine)

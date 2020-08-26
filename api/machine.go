@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/mitchellh/mapstructure"
@@ -36,6 +37,45 @@ type MachineFactory struct {
 	cloudProvider CloudProvider
 
 	machine *Machine
+}
+
+// NewMachineFactoryFromExistingMachine returns a MachineFactory which starts
+// with an existing Machine. This is useful when cloning or replacing a machine
+// and some values needs to be changed.
+func NewMachineFactoryFromExistingMachine(
+	cloudProvider CloudProvider,
+	machine *Machine,
+) *MachineFactory {
+	machineCopy := &Machine{
+		NodeType: machine.NodeType,
+		Size:     machine.Size,
+		Image:    machine.Image,
+	}
+
+	// TODO: This is very ugly. Might want to introduce a deep copy library or
+	// just find a better way to deal with provider specific machine settings.
+	if machine.ProviderSettings != nil {
+		data, err := json.Marshal(
+			machine.ProviderSettings,
+		)
+		if err != nil {
+			panic(err)
+		}
+		if err := json.Unmarshal(
+			data,
+			&machineCopy.ProviderSettings,
+		); err != nil {
+			panic(err)
+		}
+		if err := decodeMachine(cloudProvider, machineCopy); err != nil {
+			panic(err)
+		}
+	}
+
+	return &MachineFactory{
+		cloudProvider: cloudProvider,
+		machine:       machineCopy,
+	}
 }
 
 // NewMachineFactory returns a MachineFactory which is used to build a Machine.

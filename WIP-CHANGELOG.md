@@ -14,6 +14,7 @@
 
 - Added prod flavor for production grade defaults.
 - Command to add new machines.
+- Support for cloning and replacing nodes but with a different image.
 
 ### Fixed
 

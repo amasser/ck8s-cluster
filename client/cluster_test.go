@@ -268,7 +268,7 @@ func TestCloneMachine(t *testing.T) {
 	clusterClient, dir := setupClusterClient(t, logger, clusterType, cluster)
 	defer teardownClusterClient(dir)
 
-	cloneMachineName, err := clusterClient.CloneMachine(machineName)
+	cloneMachineName, err := clusterClient.CloneMachine(machineName, "")
 	if err != nil {
 		t.Errorf("error cloning machine: %s", err)
 	}
@@ -286,6 +286,73 @@ func TestCloneMachine(t *testing.T) {
 			NodeType: api.Master,
 			Size:     "size",
 			Image:    "image",
+			ProviderSettings: &exoscale.MachineSettings{
+				ESLocalStorageCapacity: 10,
+			},
+		},
+	}
+
+	if diff := cmp.Diff(wantMachines, cluster.Machines()); diff != "" {
+		t.Errorf("cloned machine mismatch (-want +got):\n%s", diff)
+	}
+
+	logTest.Diff(t)
+}
+
+func TestCloneMachineWithImage(t *testing.T) {
+	clusterType := api.ServiceCluster
+
+	logTest, logger := testutil.NewTestLogger([]string{
+		"client_machine_clone",
+		"client_terraform_plan_no_diff",
+		"terraform_init",
+		"terraform_plan_no_diff",
+		"client_configured_machines",
+	})
+
+	cloudProvider := exoscale.NewCloudProvider()
+
+	cluster := cloudProvider.Default(clusterType, "test")
+
+	machineName := "foo"
+
+	image := cloudProvider.MachineImages(api.Master)[0]
+
+	if _, err := cluster.AddMachine(
+		machineName,
+		&api.Machine{
+			NodeType: api.Master,
+			Size:     "size",
+			Image:    "image",
+			ProviderSettings: &exoscale.MachineSettings{
+				ESLocalStorageCapacity: 10,
+			},
+		},
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	clusterClient, dir := setupClusterClient(t, logger, clusterType, cluster)
+	defer teardownClusterClient(dir)
+
+	cloneMachineName, err := clusterClient.CloneMachine(machineName, image)
+	if err != nil {
+		t.Errorf("error cloning machine: %s", err)
+	}
+
+	wantMachines := map[string]*api.Machine{
+		machineName: {
+			NodeType: api.Master,
+			Size:     "size",
+			Image:    "image",
+			ProviderSettings: &exoscale.MachineSettings{
+				ESLocalStorageCapacity: 10,
+			},
+		},
+		cloneMachineName: {
+			NodeType: api.Master,
+			Size:     "size",
+			Image:    image,
 			ProviderSettings: &exoscale.MachineSettings{
 				ESLocalStorageCapacity: 10,
 			},
@@ -317,11 +384,52 @@ func TestCloneMachineNotFoundError(t *testing.T) {
 	clusterClient, dir := setupClusterClient(t, logger, clusterType, cluster)
 	defer teardownClusterClient(dir)
 
-	_, err := clusterClient.CloneMachine("foo")
+	_, err := clusterClient.CloneMachine("foo", "")
 
 	// TODO: Create custom machine not found error
 	if err == nil || !strings.Contains(err.Error(), "machine not found") {
 		t.Errorf("expected 'machine not found' error, got: %s", err)
+	}
+
+	logTest.Diff(t)
+}
+
+func TestCloneMachineUnsupportedImageError(t *testing.T) {
+	clusterType := api.ServiceCluster
+
+	logTest, logger := testutil.NewTestLogger([]string{
+		"client_machine_clone",
+		"client_terraform_plan_no_diff",
+		"terraform_init",
+		"terraform_plan_no_diff",
+		"client_configured_machines",
+	})
+
+	cloudProvider := exoscale.NewCloudProvider()
+
+	cluster := cloudProvider.Default(clusterType, "test")
+
+	machineName := "foo"
+
+	if _, err := cluster.AddMachine(machineName, &api.Machine{
+		NodeType: api.Master,
+		Size:     "size",
+		Image:    "image",
+		ProviderSettings: &exoscale.MachineSettings{
+			ESLocalStorageCapacity: 10,
+		},
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	clusterClient, dir := setupClusterClient(t, logger, clusterType, cluster)
+	defer teardownClusterClient(dir)
+
+	_, err := clusterClient.CloneMachine(machineName, "foo")
+
+	var imageErr *api.UnsupportedImageError
+	if !errors.As(err, &imageErr) {
+		t.Errorf("expected api.UnsupportedImageError, got: %s", err)
 	}
 
 	logTest.Diff(t)
