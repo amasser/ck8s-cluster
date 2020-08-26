@@ -16,7 +16,7 @@ const (
 // Default TODO
 func Default(clusterType api.ClusterType, clusterName string) *Cluster {
 	cluster := &Cluster{
-		openstack.Default(clusterType, api.Safespring, clusterName),
+		openstack.Default(clusterType, api.CityCloud, clusterName),
 	}
 
 	cluster.Cluster.Config.IdentityAPIVersion = "3"
