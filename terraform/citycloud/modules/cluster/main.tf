@@ -133,7 +133,7 @@ module "octavia_lb" {
       health_delay        = 20
       health_timeout      = 10
       health_max_retries  = 5
-      allowed_cidrs       = concat(var.api_server_whitelist, [local.subnet_cidr])
+      allowed_cidrs       = sort(concat(var.api_server_whitelist, [local.subnet_cidr]))
       timeout_client_data = 600000
     }
   }
