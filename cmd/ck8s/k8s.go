@@ -21,7 +21,7 @@ func init() {
 		Use:   "add NODE_TYPE SIZE",
 		Short: "Add a Kubernetes node",
 		Long: `This command will add a Kubernetes node by:
-1. Adding the machine in the tfvars configuration and running terraform apply.
+1. Adding the machine in the tfvars.json configuration and running terraform apply.
 2. Joining the new node to the Kubernetes cluster.`,
 		Args: ExactArgs(2),
 		PreRun: func(cmd *cobra.Command, args []string) {
@@ -47,8 +47,7 @@ func init() {
 		Use:   "clone NODE_NAME",
 		Short: "Clone a Kubernetes node",
 		Long: `This command will clone a Kubernetes node by:
-1. Cloning the machine in the tfvars configuration and running terraform
-   apply. Optionally with a different image.
+1. Cloning the machine in the tfvars.json configuration and running terraform apply. Optionally with a different image.
 2. Joining the new node to the Kubernetes cluster.`,
 		Args: ExactArgs(1),
 		PreRun: func(cmd *cobra.Command, args []string) {
@@ -82,8 +81,7 @@ func init() {
 machine by:
 1. Draining the node.
 2. Running kubeadm reset on old machine.
-3. Removing the old machine from the Terraform configuration and running
-   terraform apply.`,
+3. Removing the old machine from the Terraform configuration and running terraform apply.`,
 		Args: ExactArgs(1),
 		RunE: withClusterClient(removeNode),
 	})
@@ -92,16 +90,13 @@ machine by:
 		Use:   "replace NODE_NAME",
 		Short: "Replace a Kubernetes node",
 		Long: `This command replaces a Kubernetes cluster node by:
-1. Cloning the machine in the tfvars configuration and running terraform
-   apply. Optionally with a different image.
+1. Cloning the machine in the tfvars.json configuration and running terraform apply. Optionally with a different image.
 2. Joining the new node to the Kubernetes cluster.
 3. Draining the old node.
 3. Running kubeadm reset on old machine.
-4. Removing the old machine from the Terraform configuration and running
-   terraform apply.
+4. Removing the old machine from the Terraform configuration and running terraform apply.
 
-This useful when, for example, the Kubernetes cluster needs to be updated
-gracefully by performing a rolling upgrade.`,
+This useful when, for example, the Kubernetes cluster needs to be updated gracefully by performing a rolling upgrade.`,
 		Args: ExactArgs(1),
 		PreRun: func(cmd *cobra.Command, args []string) {
 			viper.BindPFlag(imageFlag, cmd.Flags().Lookup(imageFlag))
