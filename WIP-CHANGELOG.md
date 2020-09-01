@@ -7,6 +7,9 @@
 
 ### Release notes
 
+- The prod flavor is broken on Exoscale due to the machine disks being too small for the local volumes.
+  You may configure smaller volumes than the default to work around this.
+
 ### Fixed
 
 - Bug where tfe provider do not read the configured value in backend_config.hcl
@@ -23,3 +26,9 @@
 - Citycloud: Api server white list is applied to api server loadbalancer now as well as the VMs.
 - Increases timeout for api server loadbalancer to 10m
 - Removed CRDs. These will be installed from the apps repository instead.
+- Reduced local volume size for dev flavor.
+- Reduced control plane node sizes on Safespring for dev flavor.
+
+### Added
+
+- Added prod flavor for production grade defaults.

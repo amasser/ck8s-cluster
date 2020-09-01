@@ -5,14 +5,10 @@ import (
 )
 
 const (
-	// FlavorDevelopment TODO
 	FlavorDevelopment api.ClusterFlavor = "dev"
-
-	// FlavorProduction TODO
-	FlavorProduction api.ClusterFlavor = "prod"
+	FlavorProduction  api.ClusterFlavor = "prod"
 )
 
-// Default TODO
 func Default(clusterType api.ClusterType, clusterName string) *Cluster {
 	return &Cluster{
 		config: AWSConfig{
@@ -41,7 +37,6 @@ func Default(clusterType api.ClusterType, clusterName string) *Cluster {
 	}
 }
 
-// Development TODO
 func Development(clusterType api.ClusterType, clusterName string) api.Cluster {
 	cluster := Default(clusterType, clusterName)
 
@@ -81,11 +76,80 @@ func Development(clusterType api.ClusterType, clusterName string) api.Cluster {
 	return cluster
 }
 
-// Production TODO
 func Production(clusterType api.ClusterType, clusterName string) api.Cluster {
 	cluster := Default(clusterType, clusterName)
 
-	// TODO
+	cluster.tfvars.Region = "us-west-1"
+
+	cluster.tfvars.MachinesSC = map[string]api.Machine{
+		// Masters ------------------------------------
+		"master-0": {
+			NodeType: api.Master,
+			Size:     "t3.small",
+		},
+		"master-1": {
+			NodeType: api.Master,
+			Size:     "t3.small",
+		},
+		"master-2": {
+			NodeType: api.Master,
+			Size:     "t3.small",
+		},
+		// Workers ------------------------------------
+		// TODO:
+		// - Safespring has 8 cores for the "extra-large" and 4 for "large"
+		//   but here we have only 4 and 2 respectivly.
+		// - Maybe we should switch to non-burstable instances?
+		"worker-0": {
+			NodeType: api.Worker,
+			Size:     "t3.xlarge",
+		},
+		"worker-1": {
+			NodeType: api.Worker,
+			Size:     "t3.large",
+		},
+		"worker-2": {
+			NodeType: api.Worker,
+			Size:     "t3.large",
+		},
+		"worker-3": {
+			NodeType: api.Worker,
+			Size:     "t3.large",
+		},
+	}
+
+	cluster.tfvars.MachinesWC = map[string]api.Machine{
+		// Masters ------------------------------------
+		"master-0": {
+			NodeType: api.Master,
+			Size:     "t3.small",
+		},
+		"master-1": {
+			NodeType: api.Master,
+			Size:     "t3.small",
+		},
+		"master-2": {
+			NodeType: api.Master,
+			Size:     "t3.small",
+		},
+		// Workers ------------------------------------
+		"worker-ck8s-0": {
+			NodeType: api.Worker,
+			Size:     "t3.large",
+		},
+		"worker-0": {
+			NodeType: api.Worker,
+			Size:     "t3.large",
+		},
+		"worker-1": {
+			NodeType: api.Worker,
+			Size:     "t3.large",
+		},
+		"worker-2": {
+			NodeType: api.Worker,
+			Size:     "t3.large",
+		},
+	}
 
 	return cluster
 }
