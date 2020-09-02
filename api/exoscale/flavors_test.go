@@ -86,14 +86,14 @@ func TestFlavors(t *testing.T) {
 							NodeType: api.Worker,
 							Size:     "Extra-large",
 						},
-						ESLocalStorageCapacity: 26,
+						ESLocalStorageCapacity: 12,
 					},
 					"worker-1": {
 						Machine: api.Machine{
 							NodeType: api.Worker,
 							Size:     "Large",
 						},
-						ESLocalStorageCapacity: 26,
+						ESLocalStorageCapacity: 12,
 					},
 				},
 				MachinesWC: map[string]ExoscaleMachine{
@@ -142,6 +142,100 @@ func TestFlavors(t *testing.T) {
 				PublicIngressCIDRWhitelist: []string{},
 				APIServerWhitelist:         []string{},
 				NodeportWhitelist:          []string{},
+
+				MachinesSC: map[string]ExoscaleMachine{
+					"master-0": {
+						Machine: api.Machine{
+							NodeType: api.Master,
+							Size:     "Medium",
+						},
+					},
+					"master-1": {
+						Machine: api.Machine{
+							NodeType: api.Master,
+							Size:     "Medium",
+						},
+					},
+					"master-2": {
+						Machine: api.Machine{
+							NodeType: api.Master,
+							Size:     "Medium",
+						},
+					},
+					"worker-0": {
+						Machine: api.Machine{
+							NodeType: api.Worker,
+							Size:     "Extra-large",
+						},
+						ESLocalStorageCapacity: 0,
+					},
+					"worker-1": {
+						Machine: api.Machine{
+							NodeType: api.Worker,
+							Size:     "Large",
+						},
+						ESLocalStorageCapacity: 140,
+					},
+					"worker-2": {
+						Machine: api.Machine{
+							NodeType: api.Worker,
+							Size:     "Large",
+						},
+						ESLocalStorageCapacity: 140,
+					},
+					"worker-3": {
+						Machine: api.Machine{
+							NodeType: api.Worker,
+							Size:     "Large",
+						},
+						ESLocalStorageCapacity: 0,
+					},
+				},
+				MachinesWC: map[string]ExoscaleMachine{
+					"master-0": {
+						Machine: api.Machine{
+							NodeType: api.Master,
+							Size:     "Medium",
+						},
+					},
+					"master-1": {
+						Machine: api.Machine{
+							NodeType: api.Master,
+							Size:     "Medium",
+						},
+					},
+					"master-2": {
+						Machine: api.Machine{
+							NodeType: api.Master,
+							Size:     "Medium",
+						},
+					},
+					"worker-ck8s-0": {
+						Machine: api.Machine{
+							NodeType: api.Worker,
+							Size:     "Large",
+						},
+					},
+					"worker-0": {
+						Machine: api.Machine{
+							NodeType: api.Worker,
+							Size:     "Large",
+						},
+					},
+					"worker-1": {
+						Machine: api.Machine{
+							NodeType: api.Worker,
+							Size:     "Large",
+						},
+					},
+					"worker-2": {
+						Machine: api.Machine{
+							NodeType: api.Worker,
+							Size:     "Large",
+						},
+					},
+				},
+				NFSSize: "Small",
 			},
 		},
 		got: Production(clusterType, clusterName),

@@ -140,10 +140,72 @@ func TestFlavors(t *testing.T) {
 				DNSSecretAccessKey: "changeme",
 			},
 			tfvars: AWSTFVars{
-				Region:                     "",
+				Region:                     "us-west-1",
 				PublicIngressCIDRWhitelist: []string{},
 				APIServerWhitelist:         []string{},
 				NodeportWhitelist:          []string{},
+
+				MachinesSC: map[string]api.Machine{
+					"master-0": {
+						NodeType: api.Master,
+						Size:     "t3.small",
+					},
+					"master-1": {
+						NodeType: api.Master,
+						Size:     "t3.small",
+					},
+					"master-2": {
+						NodeType: api.Master,
+						Size:     "t3.small",
+					},
+					"worker-0": {
+						NodeType: api.Worker,
+						Size:     "t3.xlarge",
+					},
+					"worker-1": {
+						NodeType: api.Worker,
+						Size:     "t3.large",
+					},
+					"worker-2": {
+						NodeType: api.Worker,
+						Size:     "t3.large",
+					},
+					"worker-3": {
+						NodeType: api.Worker,
+						Size:     "t3.large",
+					},
+				},
+
+				MachinesWC: map[string]api.Machine{
+					"master-0": {
+						NodeType: api.Master,
+						Size:     "t3.small",
+					},
+					"master-1": {
+						NodeType: api.Master,
+						Size:     "t3.small",
+					},
+					"master-2": {
+						NodeType: api.Master,
+						Size:     "t3.small",
+					},
+					"worker-0": {
+						NodeType: api.Worker,
+						Size:     "t3.large",
+					},
+					"worker-1": {
+						NodeType: api.Worker,
+						Size:     "t3.large",
+					},
+					"worker-2": {
+						NodeType: api.Worker,
+						Size:     "t3.large",
+					},
+					"worker-ck8s-0": {
+						NodeType: api.Worker,
+						Size:     "t3.large",
+					},
+				},
 			},
 		},
 		got: Production(clusterType, clusterName),
