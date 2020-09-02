@@ -4,11 +4,15 @@
   supported and needs to be updated to the new format (tfvars.json). However,
   once the configuration has been updated it can be applied without any change.
   See: [docs/migration/0.6.0.md#tfvars](docs/migration/0.6.0.md#tfvars)
+- PSPs cannot be disabled anymore. The effect has to be achieved by creating a permissive policy.
+  After an update to v0.6.0, it is required to edit the manifest for the static apiserver pods to enable the `PodSecurityPolicy` admission plugin.
 
 ### Release notes
 
 - The prod flavor is broken on Exoscale due to the machine disks being too small for the local volumes.
   You may configure smaller volumes than the default to work around this.
+- The `ENABLE_PSP` value should be removed from the config, see breaking changes regarding PSPs.
+- The static apiserver pod manifests should be edited to enable the `PodSecurityPolicy` admission plugin **after** the upgrade.
 
 ### Added
 
