@@ -49,16 +49,13 @@ func Development(clusterType api.ClusterType, clusterName string) api.Cluster {
 
 	cloudProvider := NewCloudProvider()
 
-	master, err := api.NewMachineFactory(
+	master := api.NewMachineFactory(
 		cloudProvider,
 		api.Master,
 		"Small",
-	).Build()
-	if err != nil {
-		panic(err)
-	}
+	).MustBuild()
 
-	workerExtraLargeSC, err := api.NewMachineFactory(
+	workerExtraLargeSC := api.NewMachineFactory(
 		cloudProvider,
 		api.Worker,
 		"Extra-large",
@@ -66,12 +63,9 @@ func Development(clusterType api.ClusterType, clusterName string) api.Cluster {
 		// Match ES_DATA_STORAGE_SIZE in config.sh
 		// Note that this value is in GB while config.sh uses Gi
 		"es_local_storage_capacity": 12,
-	}).Build()
-	if err != nil {
-		panic(err)
-	}
+	}).MustBuild()
 
-	workerLargeSC, err := api.NewMachineFactory(
+	workerLargeSC := api.NewMachineFactory(
 		cloudProvider,
 		api.Worker,
 		"Large",
@@ -79,19 +73,13 @@ func Development(clusterType api.ClusterType, clusterName string) api.Cluster {
 		// Match ES_DATA_STORAGE_SIZE in config.sh
 		// Note that this value is in GB while config.sh uses Gi
 		"es_local_storage_capacity": 12,
-	}).Build()
-	if err != nil {
-		panic(err)
-	}
+	}).MustBuild()
 
-	workerWC, err := api.NewMachineFactory(
+	workerWC := api.NewMachineFactory(
 		cloudProvider,
 		api.Worker,
 		"Large",
-	).Build()
-	if err != nil {
-		panic(err)
-	}
+	).MustBuild()
 
 	cluster.tfvars.MachinesSC = map[string]*api.Machine{
 		"master-0": master,
@@ -118,25 +106,19 @@ func Production(clusterType api.ClusterType, clusterName string) api.Cluster {
 
 	cloudProvider := NewCloudProvider()
 
-	master, err := api.NewMachineFactory(
+	master := api.NewMachineFactory(
 		cloudProvider,
 		api.Master,
 		"Medium",
-	).Build()
-	if err != nil {
-		panic(err)
-	}
+	).MustBuild()
 
-	workerExtraLargeSC, err := api.NewMachineFactory(
+	workerExtraLargeSC := api.NewMachineFactory(
 		cloudProvider,
 		api.Worker,
 		"Extra-large",
-	).Build()
-	if err != nil {
-		panic(err)
-	}
+	).MustBuild()
 
-	workerLargeESSC, err := api.NewMachineFactory(
+	workerLargeESSC := api.NewMachineFactory(
 		cloudProvider,
 		api.Worker,
 		"Large",
@@ -144,28 +126,19 @@ func Production(clusterType api.ClusterType, clusterName string) api.Cluster {
 		// Match ES_DATA_STORAGE_SIZE in config.sh
 		// Note that this value is in GB while config.sh uses Gi
 		"es_local_storage_capacity": 140,
-	}).Build()
-	if err != nil {
-		panic(err)
-	}
+	}).MustBuild()
 
-	workerLargeSC, err := api.NewMachineFactory(
+	workerLargeSC := api.NewMachineFactory(
 		cloudProvider,
 		api.Worker,
 		"Large",
-	).Build()
-	if err != nil {
-		panic(err)
-	}
+	).MustBuild()
 
-	workerWC, err := api.NewMachineFactory(
+	workerWC := api.NewMachineFactory(
 		cloudProvider,
 		api.Worker,
 		"Large",
-	).Build()
-	if err != nil {
-		panic(err)
-	}
+	).MustBuild()
 
 	cluster.tfvars.MachinesSC = map[string]*api.Machine{
 		"master-0": master,

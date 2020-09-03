@@ -131,6 +131,15 @@ func (f *MachineFactory) Build() (*Machine, error) {
 	return f.machine, nil
 }
 
+// MustBuild runs Build() except that it panics if there is an error.
+func (f *MachineFactory) MustBuild() *Machine {
+	machine, err := f.Build()
+	if err != nil {
+		panic(err)
+	}
+	return machine
+}
+
 // LatestImage returns the latest supported image for the cloud provider.
 func LatestImage(cloudProvider CloudProvider, nodeType NodeType) string {
 	images := cloudProvider.MachineImages(nodeType)

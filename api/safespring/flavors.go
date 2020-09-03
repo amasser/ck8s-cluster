@@ -71,42 +71,30 @@ func Development(clusterType api.ClusterType, clusterName string) api.Cluster {
 
 	cloudProvider := NewCloudProvider()
 
-	master, err := api.NewMachineFactory(
+	master := api.NewMachineFactory(
 		cloudProvider,
 		api.Master,
 		// b.medium
 		"9d82d1ee-ca29-4928-a868-d56e224b92a1",
-	).Build()
-	if err != nil {
-		panic(err)
-	}
-	workerExtraLarge, err := api.NewMachineFactory(
+	).MustBuild()
+	workerExtraLarge := api.NewMachineFactory(
 		cloudProvider,
 		api.Worker,
 		// lb.xlarge.1d
 		"ea0dbe3b-f93a-47e0-84e4-b09ec5873bdf",
-	).Build()
-	if err != nil {
-		panic(err)
-	}
-	workerLarge, err := api.NewMachineFactory(
+	).MustBuild()
+	workerLarge := api.NewMachineFactory(
 		cloudProvider,
 		api.Worker,
 		// lb.large.1d
 		"dc67a9eb-0685-4bb6-9383-a01c717e02e8",
-	).Build()
-	if err != nil {
-		panic(err)
-	}
-	loadbalancer, err := api.NewMachineFactory(
+	).MustBuild()
+	loadbalancer := api.NewMachineFactory(
 		cloudProvider,
 		api.LoadBalancer,
 		// lb.tiny
 		"51d480b8-2517-4ba8-bfe0-c649ac93eb61",
-	).Build()
-	if err != nil {
-		panic(err)
-	}
+	).MustBuild()
 
 	cluster.Cluster.TFVars.MachinesSC = map[string]*api.Machine{
 		"master-0":       master,
@@ -132,42 +120,30 @@ func Production(clusterType api.ClusterType, clusterName string) api.Cluster {
 
 	cloudProvider := NewCloudProvider()
 
-	master, err := api.NewMachineFactory(
+	master := api.NewMachineFactory(
 		cloudProvider,
 		api.Master,
 		// b.medium
 		"9d82d1ee-ca29-4928-a868-d56e224b92a1",
-	).Build()
-	if err != nil {
-		panic(err)
-	}
-	workerExtraLarge, err := api.NewMachineFactory(
+	).MustBuild()
+	workerExtraLarge := api.NewMachineFactory(
 		cloudProvider,
 		api.Worker,
 		// lb.xlarge.1d
 		"ea0dbe3b-f93a-47e0-84e4-b09ec5873bdf",
-	).Build()
-	if err != nil {
-		panic(err)
-	}
-	workerLarge, err := api.NewMachineFactory(
+	).MustBuild()
+	workerLarge := api.NewMachineFactory(
 		cloudProvider,
 		api.Worker,
 		// lb.large.1d
 		"dc67a9eb-0685-4bb6-9383-a01c717e02e8",
-	).Build()
-	if err != nil {
-		panic(err)
-	}
-	loadbalancer, err := api.NewMachineFactory(
+	).MustBuild()
+	loadbalancer := api.NewMachineFactory(
 		cloudProvider,
 		api.LoadBalancer,
 		// lb.tiny
 		"51d480b8-2517-4ba8-bfe0-c649ac93eb61",
-	).Build()
-	if err != nil {
-		panic(err)
-	}
+	).MustBuild()
 
 	cluster.Cluster.TFVars.MachinesSC = map[string]*api.Machine{
 		"master-0":       master,

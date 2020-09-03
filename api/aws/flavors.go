@@ -42,30 +42,21 @@ func Development(clusterType api.ClusterType, clusterName string) api.Cluster {
 
 	cloudProvider := NewCloudProvider()
 
-	master, err := api.NewMachineFactory(
+	master := api.NewMachineFactory(
 		cloudProvider,
 		api.Master,
 		"t3.small",
-	).Build()
-	if err != nil {
-		panic(err)
-	}
-	workerExtraLarge, err := api.NewMachineFactory(
+	).MustBuild()
+	workerExtraLarge := api.NewMachineFactory(
 		cloudProvider,
 		api.Worker,
 		"t3.xlarge",
-	).Build()
-	if err != nil {
-		panic(err)
-	}
-	workerLarge, err := api.NewMachineFactory(
+	).MustBuild()
+	workerLarge := api.NewMachineFactory(
 		cloudProvider,
 		api.Worker,
 		"t3.large",
-	).Build()
-	if err != nil {
-		panic(err)
-	}
+	).MustBuild()
 
 	cluster.tfvars.Region = "us-west-1"
 
@@ -95,30 +86,21 @@ func Production(clusterType api.ClusterType, clusterName string) api.Cluster {
 
 	cloudProvider := NewCloudProvider()
 
-	master, err := api.NewMachineFactory(
+	master := api.NewMachineFactory(
 		cloudProvider,
 		api.Master,
 		"t3.small",
-	).Build()
-	if err != nil {
-		panic(err)
-	}
-	workerExtraLarge, err := api.NewMachineFactory(
+	).MustBuild()
+	workerExtraLarge := api.NewMachineFactory(
 		cloudProvider,
 		api.Worker,
 		"t3.xlarge",
-	).Build()
-	if err != nil {
-		panic(err)
-	}
-	workerLarge, err := api.NewMachineFactory(
+	).MustBuild()
+	workerLarge := api.NewMachineFactory(
 		cloudProvider,
 		api.Worker,
 		"t3.large",
-	).Build()
-	if err != nil {
-		panic(err)
-	}
+	).MustBuild()
 
 	cluster.tfvars.Region = "us-west-1"
 
@@ -133,13 +115,13 @@ func Production(clusterType api.ClusterType, clusterName string) api.Cluster {
 	}
 
 	cluster.tfvars.MachinesWC = map[string]*api.Machine{
-		"master-0": master,
-		"master-1": master,
-		"master-2": master,
+		"master-0":      master,
+		"master-1":      master,
+		"master-2":      master,
 		"worker-ck8s-0": workerLarge,
-		"worker-0": workerLarge,
-		"worker-1": workerLarge,
-		"worker-2": workerLarge,
+		"worker-0":      workerLarge,
+		"worker-1":      workerLarge,
+		"worker-2":      workerLarge,
 	}
 
 	return cluster

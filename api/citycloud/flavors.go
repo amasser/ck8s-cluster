@@ -49,33 +49,24 @@ func Development(clusterType api.ClusterType, clusterName string) api.Cluster {
 
 	cloudProvider := NewCloudProvider()
 
-	master, err := api.NewMachineFactory(
+	master := api.NewMachineFactory(
 		cloudProvider,
 		api.Master,
 		// 2C-4GB-50GB
 		"96c7903e-32f0-421d-b6a2-a45c97b15665",
-	).Build()
-	if err != nil {
-		panic(err)
-	}
-	worker4C16GB50GB, err := api.NewMachineFactory(
+	).MustBuild()
+	worker4C16GB50GB := api.NewMachineFactory(
 		cloudProvider,
 		api.Worker,
 		// 4C-16GB-50GB
 		"d430b3cd-0216-43ff-878c-c08689c0001b",
-	).Build()
-	if err != nil {
-		panic(err)
-	}
-	worker4C8GB50GB, err := api.NewMachineFactory(
+	).MustBuild()
+	worker4C8GB50GB := api.NewMachineFactory(
 		cloudProvider,
 		api.Worker,
 		// 4C-8GB-50GB
 		"572a3b2e-6329-4053-b872-aecb1e70d8a6",
-	).Build()
-	if err != nil {
-		panic(err)
-	}
+	).MustBuild()
 
 	cluster.Cluster.TFVars.MachinesSC = map[string]*api.Machine{
 		"master-0": master,
@@ -99,33 +90,24 @@ func Production(clusterType api.ClusterType, clusterName string) api.Cluster {
 
 	cloudProvider := NewCloudProvider()
 
-	master, err := api.NewMachineFactory(
+	master := api.NewMachineFactory(
 		cloudProvider,
 		api.Master,
 		// 2C-4GB-50GB
 		"96c7903e-32f0-421d-b6a2-a45c97b15665",
-	).Build()
-	if err != nil {
-		panic(err)
-	}
-	worker8C16GB50GB, err := api.NewMachineFactory(
+	).MustBuild()
+	worker8C16GB50GB := api.NewMachineFactory(
 		cloudProvider,
 		api.Worker,
 		// 8C-16GB-50GB
 		"80c21068-032e-40b2-b02f-f06715b4de8a",
-	).Build()
-	if err != nil {
-		panic(err)
-	}
-	worker4C8GB50GB, err := api.NewMachineFactory(
+	).MustBuild()
+	worker4C8GB50GB := api.NewMachineFactory(
 		cloudProvider,
 		api.Worker,
 		// 4C-8GB-50GB
 		"572a3b2e-6329-4053-b872-aecb1e70d8a6",
-	).Build()
-	if err != nil {
-		panic(err)
-	}
+	).MustBuild()
 
 	cluster.Cluster.TFVars.MachinesSC = map[string]*api.Machine{
 		"master-0": master,
