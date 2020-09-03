@@ -7,6 +7,11 @@ test_path="${here}/test"
 
 source "${here}/common.bash"
 
+# Test ssh and kubectl access
+
+ckctl status --cluster sc
+ckctl status --cluster wc
+
 # Test S3 buckets
 
 "${test_path}/infrastructure/s3-buckets.sh"
