@@ -1,6 +1,9 @@
 Elastisys Compliant Kubernetes Cluster
 ======================================
 
+**NOTE: This project is in alpha stage and is actively developed.
+Therefore the API may change in backwards-incompatible ways.**
+
 ## Overview
 
 TODO
