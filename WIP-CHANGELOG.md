@@ -52,3 +52,4 @@
 - Reduced local volume size for dev flavor.
 - Reduced control plane node sizes on Safespring for dev flavor.
 - Configuration files *(config.sh and secrets.env)* changed from *dotenv* format to *yaml*.
+- Bumped SOPS version to 3.6.1
